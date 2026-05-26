@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Niramoy – Health Worker Assistant</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; }
+        header { background: #1a7f5a; color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.3rem; }
+        #offline-banner { display: none; background: #e65100; color: white; text-align: center; padding: 8px; font-size: 0.9rem; }
+        .tab-bar { display: flex; background: white; border-bottom: 2px solid #1a7f5a; }
+        .tab-bar button { flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-size: 0.95rem; }
+        .tab-bar button.active { background: #1a7f5a; color: white; }
+        .screen { display: none; padding: 20px; }
+        .screen.active { display: block; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.9rem; }
+        textarea, select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; margin-bottom: 14px; }
+        textarea { height: 100px; resize: vertical; }
+        .btn-primary { width: 100%; padding: 14px; background: #1a7f5a; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        .btn-primary:disabled { background: #aaa; }
+        .risk-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 1rem; }
+        .risk-HIGH { background: #ffebee; color: #c62828; }
+        .risk-MEDIUM { background: #fff8e1; color: #f57f17; }
+        .risk-LOW { background: #e8f5e9; color: #2e7d32; }
+        .result-box { background: #f9f9f9; border-left: 4px solid #1a7f5a; padding: 14px; border-radius: 6px; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; }
+        .log-item { border-left: 4px solid #1a7f5a; padding: 10px 14px; margin-bottom: 10px; background: white; border-radius: 6px; font-size: 0.85rem; }
+        .log-item .time { color: #888; font-size: 0.78rem; }
+        #voice-btn { width: 100%; padding: 12px; margin-bottom: 12px; background: #e3f2fd; border: 2px solid #1565c0; border-radius: 8px; cursor: pointer; font-size: 0.95rem; color: #1565c0; font-weight: bold; }
+        #voice-btn.listening { background: #ffebee; border-color: #c62828; color: #c62828; }
+        .loader { text-align: center; padding: 20px; color: #1a7f5a; font-size: 0.95rem; display: none; }
+    </style>
+</head>
+
+<body>
+
+    <div id="offline-banner">⚠️ Offline Mode — Using cached data</div>
+
+    <header>
+        <h1>🏥 Niramoy</h1>
+        <span style="font-size:0.8rem;">AI Health Assistant</span>
+    </header>
+
+    <div class="tab-bar">
+        <button class="active" onclick="showTab('triage', event)">Triage</button>
+        <button onclick="showTab('protocols', event)">Protocols</button>
+        <button onclick="showTab('log', event)">Session Log</button>
+        <button onclick="showTab('map', event)">🗺️ Referral Map</button>
+    </div>
+
+    <!-- TRIAGE SCREEN -->
+    <div id="tab-triage" class="screen active">
+        <div class="card">
+            <label>Language</label>
+            <select id="lang">
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+            </select>
+            <button id="voice-btn" onclick="startVoice()">🎤 Tap to speak symptoms</button>
+            <label>Patient Symptoms</label>
+            <textarea id="symptoms" placeholder="Describe the patient's symptoms..."></textarea>
+            <button class="btn-primary" onclick="submitTriage()" id="submit-btn">
+                Get AI Recommendation
+            </button>
+        </div>
+        <div class="loader" id="loader">⏳ Analyzing with AI... please wait</div>
+        <div class="card" id="result-card" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <strong>AI Recommendation</strong>
+                <span class="risk-badge" id="risk-badge">-</span>
+            </div>
+            <div class="result-box" id="result-text"></div>
+        </div>
+    </div>
+
+    <!-- PROTOCOLS SCREEN -->
+    <div id="tab-protocols" class="screen">
+        <div class="card">
+            <h3 style="margin-bottom:12px;">📋 Loaded Protocols</h3>
+            <div id="protocols-list">Loading...</div>
+        </div>
+    </div>
+
+    <!-- SESSION LOG SCREEN -->
+    <div id="tab-log" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <strong>Today's Cases</strong>
+            <span id="case-count" style="color:#1a7f5a; font-weight:bold;">0 cases</span>
+        </div>
+        <div id="log-list"></div>
+    </div>
+
+    <!-- MAP SCREEN -->
+    <div id="tab-map" class="screen">
+        <div class="card">
+            <h3 style="margin-bottom:12px;">🏥 Nearest Health Facilities</h3>
+            <p style="color:#666; font-size:0.85rem; margin-bottom:16px;">
+                Upazila health complexes for emergency referrals
+            </p>
+            <div id="map" style="height:400px; border-radius:8px;"></div>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom:12px;">📞 Emergency Contacts</h3>
+            <div style="line-height:2;">
+                <div>🚑 National Emergency: <strong>999</strong></div>
+                <div>🏥 DGHS Hotline: <strong>16767</strong></div>
+                <div>👶 Maternal Health: <strong>16743</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //const API = "http://127.0.0.1:8000";
+        const API = "http://10.67.136.45:8000";
+        
+        let sessionLog = JSON.parse(localStorage.getItem("niramoy_log") || "[]");
+
+        function updateOnlineStatus() {
+            document.getElementById("offline-banner").style.display =
+                navigator.onLine ? "none" : "block";
+        }
+        window.addEventListener("online", updateOnlineStatus);
+        window.addEventListener("offline", updateOnlineStatus);
+        updateOnlineStatus();
+
+        function showTab(name, e) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+            document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+            document.getElementById("tab-" + name).classList.add("active");
+            if (e && e.target) e.target.classList.add("active");
+            if (name === "log") renderLog();
+            if (name === "protocols") loadProtocols();
+            if (name === "map") setTimeout(initMap, 100);
+        }
+
+        function startVoice() {
+            if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+                alert("Voice input not supported in this browser. Use Chrome.");
+                return;
+            }
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SR();
+            const lang = document.getElementById("lang").value;
+            recognition.lang = lang === "bn" ? "bn-BD" : "en-US";
+            recognition.interimResults = false;
+            const btn = document.getElementById("voice-btn");
+            btn.textContent = "🔴 Listening...";
+            btn.classList.add("listening");
+            recognition.onresult = (e) => {
+                document.getElementById("symptoms").value = e.results[0][0].transcript;
+                btn.textContent = "🎤 Tap to speak symptoms";
+                btn.classList.remove("listening");
+            };
+            recognition.onerror = () => {
+                btn.textContent = "🎤 Tap to speak symptoms";
+                btn.classList.remove("listening");
+            };
+            recognition.start();
+        }
+
+        async function submitTriage() {
+            const symptoms = document.getElementById("symptoms").value.trim();
+            const language = document.getElementById("lang").value;
+            if (!symptoms) { alert("Please enter symptoms first."); return; }
+            document.getElementById("submit-btn").disabled = true;
+            document.getElementById("loader").style.display = "block";
+            document.getElementById("result-card").style.display = "none";
+            try {
+                const res = await fetch(`${API}/triage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ symptoms, language })
+                });
+                const data = await res.json();
+                const text = data.raw_response;
+                const riskMatch = text.match(/RISK LEVEL[:\s]*(High|Medium|Low)/i);
+                const risk = riskMatch ? riskMatch[1].toUpperCase() : "UNKNOWN";
+                document.getElementById("result-text").textContent = text;
+                const badge = document.getElementById("risk-badge");
+                badge.textContent = risk;
+                badge.className = `risk-badge risk-${risk}`;
+                document.getElementById("result-card").style.display = "block";
+                const entry = {
+                    time: new Date().toLocaleTimeString(),
+                    symptoms: symptoms.substring(0, 60) + "...",
+                    risk,
+                    response: text
+                };
+                sessionLog.unshift(entry);
+                localStorage.setItem("niramoy_log", JSON.stringify(sessionLog.slice(0, 50)));
+            } catch (err) {
+                alert("Connection error. Check if the backend is running.");
+            } finally {
+                document.getElementById("submit-btn").disabled = false;
+                document.getElementById("loader").style.display = "none";
+            }
+        }
+
+        async function loadProtocols() {
+            try {
+                const res = await fetch(`${API}/protocols`);
+                const data = await res.json();
+                document.getElementById("protocols-list").innerHTML =
+                    data.protocols.map(p => `<div style="padding:10px 0; border-bottom:1px solid #eee;">📄 ${p}</div>`).join("");
+            } catch {
+                document.getElementById("protocols-list").textContent = "Could not load protocols.";
+            }
+        }
+
+        function renderLog() {
+            const list = document.getElementById("log-list");
+            document.getElementById("case-count").textContent = `${sessionLog.length} cases`;
+            if (sessionLog.length === 0) {
+                list.innerHTML = "<p style='color:#888;'>No cases yet today.</p>";
+                return;
+            }
+            list.innerHTML = sessionLog.map(e => `
+                <div class="log-item">
+                    <div class="time">${e.time}</div>
+                    <div><strong>Risk: <span class="risk-badge risk-${e.risk}" style="font-size:0.8rem;padding:2px 10px;">${e.risk}</span></strong></div>
+                    <div style="margin-top:6px;color:#555;">${e.symptoms}</div>
+                </div>
+            `).join("");
+        }
+
+        let mapInitialized = false;
+        function initMap() {
+            if (mapInitialized) return;
+            mapInitialized = true;
+            const map = L.map('map').setView([23.8103, 90.4125], 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            const facilities = [
+                { name: "Dhaka Medical College Hospital", lat: 23.7261, lng: 90.3961, type: "tertiary" },
+                { name: "Sir Salimullah Medical College", lat: 23.7099, lng: 90.4072, type: "tertiary" },
+                { name: "Gazipur Sadar Hospital", lat: 23.9999, lng: 90.4203, type: "district" },
+                { name: "Narayanganj District Hospital", lat: 23.6238, lng: 90.4998, type: "district" },
+                { name: "Manikganj District Hospital", lat: 23.8634, lng: 89.9816, type: "district" },
+                { name: "Munshiganj District Hospital", lat: 23.5423, lng: 90.5302, type: "district" },
+                { name: "Narsingdi District Hospital", lat: 23.9215, lng: 90.7152, type: "district" },
+                { name: "Tangail District Hospital", lat: 24.2512, lng: 89.9167, type: "district" },
+                { name: "Mymensingh Medical College", lat: 24.7471, lng: 90.4203, type: "tertiary" },
+                { name: "Chittagong Medical College", lat: 22.3569, lng: 91.8313, type: "tertiary" },
+                { name: "Sylhet MAG Osmani Hospital", lat: 24.8949, lng: 91.8687, type: "tertiary" },
+                { name: "Rajshahi Medical College", lat: 24.3745, lng: 88.6042, type: "tertiary" },
+            ];
+            const colors = { tertiary: "#c62828", district: "#1a7f5a" };
+            facilities.forEach(f => {
+                const marker = L.circleMarker([f.lat, f.lng], {
+                    radius: f.type === "tertiary" ? 10 : 7,
+                    fillColor: colors[f.type],
+                    color: "white",
+                    weight: 2,
+                    fillOpacity: 0.9
+                }).addTo(map);
+                marker.bindPopup(`
+                    <strong>${f.name}</strong><br/>
+                    <span style="color:${colors[f.type]}">
+                        ${f.type === "tertiary" ? "🏥 Tertiary Hospital" : "🏨 District Hospital"}
+                    </span>
+                `);
+            });
+            const legend = L.control({ position: "bottomright" });
+            legend.onAdd = () => {
+                const div = L.DomUtil.create("div");
+                div.style.cssText = "background:white;padding:10px;border-radius:6px;font-size:0.8rem;";
+                div.innerHTML = `
+                    <div><span style="color:#c62828;">●</span> Tertiary Hospital</div>
+                    <div><span style="color:#1a7f5a;">●</span> District Hospital</div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // Register service worker
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js")
+                .then(() => console.log("✅ Service Worker registered"))
+                .catch(err => console.log("SW error:", err));
+        }
+    </script>
+
+</body>
+</html>
