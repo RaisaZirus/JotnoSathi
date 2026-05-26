@@ -20,12 +20,12 @@
     "district_count": 6,
     "field_report_count": 0,
     "district_scores": {
-      "Barishal": 69.3,
-      "Barguna": 59.4,
-      "Bhola": 62.5,
-      "Jhalokati": 63.5,
-      "Patuakhali": 64.6,
-      "Pirojpur": 60.2
+      "Barishal": 62.8,
+      "Barguna": 64.7,
+      "Bhola": 63.1,
+      "Jhalokati": 62.3,
+      "Patuakhali": 61.0,
+      "Pirojpur": 64.9
     },
     "worker_briefing": "Barishal is at HIGH risk (score: 63.4/100).\nPrimary concerns: Child anemia prevalence, Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss"
   },
@@ -55,17 +55,17 @@
     "district_count": 11,
     "field_report_count": 0,
     "district_scores": {
-      "Chattogram": 63.9,
-      "Bandarban": 65.0,
-      "Brahmanbaria": 70.5,
-      "Chandpur": 80.2,
-      "Cumilla": 70.8,
-      "Cox's Bazar": 68.1,
-      "Feni": 68.9,
-      "Khagrachari": 66.7,
-      "Lakshmipur": 67.7,
-      "Noakhali": 69.4,
-      "Rangamati": 73.4
+      "Chattogram": 67.2,
+      "Bandarban": 61.9,
+      "Brahmanbaria": 71.9,
+      "Chandpur": 61.0,
+      "Cumilla": 75.7,
+      "Cox's Bazar": 75.5,
+      "Feni": 70.7,
+      "Khagrachari": 63.5,
+      "Lakshmipur": 65.4,
+      "Noakhali": 69.2,
+      "Rangamati": 68.1
     },
     "worker_briefing": "Chattogram is at HIGH risk (score: 69.0/100).\nPrimary concerns: Unmet healthcare needs, Elevated diabetes prevalence.\n\nToday's screening priorities:\n  • Screen adults for diabetes: thirst, frequent urination, weight loss\n  • Screen for malaria: cyclical fever, chills, sweating"
   },
@@ -97,18 +97,18 @@
     "district_count": 13,
     "field_report_count": 0,
     "district_scores": {
-      "Dhaka": 95.4,
-      "Faridpur": 93.0,
-      "Gazipur": 94.9,
-      "Gopalganj": 99.7,
-      "Kishoreganj": 95.6,
-      "Madaripur": 99.4,
+      "Dhaka": 92.5,
+      "Faridpur": 100.0,
+      "Gazipur": 96.8,
+      "Gopalganj": 100.0,
+      "Kishoreganj": 100.0,
+      "Madaripur": 99.6,
       "Manikganj": 100.0,
-      "Munshiganj": 100.0,
+      "Munshiganj": 92.9,
       "Narayanganj": 100.0,
-      "Narsingdi": 99.1,
+      "Narsingdi": 100.0,
       "Rajbari": 100.0,
-      "Shariatpur": 98.9,
+      "Shariatpur": 100.0,
       "Tangail": 100.0
     },
     "worker_briefing": "Dhaka is at CRITICAL risk (score: 100.0/100).\nPrimary concerns: High dengue burden, Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for dengue: fever, rash, joint pain, bleeding gums\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Screen adults for diabetes: thirst, frequent urination, weight loss\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss"
@@ -138,16 +138,16 @@
     "district_count": 10,
     "field_report_count": 0,
     "district_scores": {
-      "Khulna": 43.9,
-      "Bagerhat": 40.3,
-      "Chuadanga": 44.3,
-      "Jashore": 51.3,
-      "Jhenaidah": 39.6,
-      "Kushtia": 41.7,
-      "Magura": 52.4,
-      "Meherpur": 42.1,
-      "Narail": 42.7,
-      "Satkhira": 41.7
+      "Khulna": 52.4,
+      "Bagerhat": 42.5,
+      "Chuadanga": 40.3,
+      "Jashore": 41.0,
+      "Jhenaidah": 38.5,
+      "Kushtia": 45.5,
+      "Magura": 42.7,
+      "Meherpur": 44.7,
+      "Narail": 35.2,
+      "Satkhira": 49.1
     },
     "worker_briefing": "Khulna is at MODERATE risk (score: 44.9/100).\nPrimary concerns: Child anemia prevalence, Low antenatal care coverage.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
   },
@@ -170,10 +170,10 @@
     "district_count": 4,
     "field_report_count": 2,
     "district_scores": {
-      "Mymensingh": 74.4,
-      "Jamalpur": 74.1,
-      "Netrokona": 69.2,
-      "Sherpur": 71.7
+      "Mymensingh": 73.3,
+      "Jamalpur": 69.3,
+      "Netrokona": 81.4,
+      "Sherpur": 77.4
     },
     "worker_briefing": "Mymensingh is at CRITICAL risk (score: 75.9/100).\n⚡ Score adjusted by 2 field report(s) from Shasthya Shebikas.\nPrimary concerns: Recent field observations (2 reports), Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss\n  • Follow up on cases reported by field workers in this area"
   },
@@ -200,26 +200,26 @@
     "district_count": 8,
     "field_report_count": 0,
     "district_scores": {
-      "Rajshahi": 36.5,
-      "Bogura": 36.8,
-      "Chapai Nawabganj": 36.5,
-      "Joypurhat": 37.9,
-      "Naogaon": 34.9,
-      "Natore": 32.3,
-      "Pabna": 36.2,
-      "Sirajganj": 37.9
+      "Rajshahi": 30.0,
+      "Bogura": 40.0,
+      "Chapai Nawabganj": 29.7,
+      "Joypurhat": 37.0,
+      "Naogaon": 40.0,
+      "Natore": 41.3,
+      "Pabna": 32.4,
+      "Sirajganj": 33.4
     },
     "worker_briefing": "Rajshahi is at MODERATE risk (score: 34.9/100).\nPrimary concerns: Low antenatal care coverage, High hypertension rate.\n\nToday's screening priorities:\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen adults for diabetes: thirst, frequent urination, weight loss"
   },
   "Rangpur": {
     "division": "Rangpur",
-    "score": 51.0,
+    "score": 53.2,
     "risk_level": "HIGH",
     "color": "#f57c00",
     "top_factors": [
+      "Recent field observations (1 reports)",
       "Child anemia prevalence",
-      "Elevated infant mortality",
-      "High under-5 mortality"
+      "Elevated infant mortality"
     ],
     "districts": [
       "Rangpur",
@@ -232,18 +232,18 @@
       "Thakurgaon"
     ],
     "district_count": 8,
-    "field_report_count": 0,
+    "field_report_count": 1,
     "district_scores": {
-      "Rangpur": 49.0,
-      "Dinajpur": 59.9,
-      "Gaibandha": 48.3,
-      "Kurigram": 52.3,
-      "Lalmonirhat": 51.1,
-      "Nilphamari": 51.5,
-      "Panchagarh": 49.4,
-      "Thakurgaon": 52.9
+      "Rangpur": 49.4,
+      "Dinajpur": 52.4,
+      "Gaibandha": 54.5,
+      "Kurigram": 53.9,
+      "Lalmonirhat": 51.0,
+      "Nilphamari": 51.0,
+      "Panchagarh": 47.9,
+      "Thakurgaon": 52.3
     },
-    "worker_briefing": "Rangpur is at HIGH risk (score: 51.0/100).\nPrimary concerns: Child anemia prevalence, Elevated infant mortality.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
+    "worker_briefing": "Rangpur is at HIGH risk (score: 53.2/100).\n⚡ Score adjusted by 1 field report(s) from Shasthya Shebikas.\nPrimary concerns: Recent field observations (1 reports), Child anemia prevalence.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Follow up on cases reported by field workers in this area"
   },
   "Sylhet": {
     "division": "Sylhet",
@@ -264,10 +264,10 @@
     "district_count": 4,
     "field_report_count": 0,
     "district_scores": {
-      "Sylhet": 72.8,
-      "Habiganj": 63.5,
-      "Moulvibazar": 64.3,
-      "Sunamganj": 70.3
+      "Sylhet": 70.6,
+      "Habiganj": 73.4,
+      "Moulvibazar": 71.5,
+      "Sunamganj": 79.5
     },
     "worker_briefing": "Sylhet is at CRITICAL risk (score: 70.4/100).\nPrimary concerns: Elevated infant mortality, High under-5 mortality.\n\nToday's screening priorities:\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
   }
