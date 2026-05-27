@@ -1,19 +1,7 @@
 {
-  "dengue_total_patients": 0.18,
-  "measles_outbreak_weight": 0.1,
-  "infant_mortality_rate": 0.09,
-  "diabetes_rate": 0.08,
-  "child_anemia_pct": 0.07,
-  "u5_mortality_rate": 0.07,
-  "anc_coverage_gap": 0.07,
-  "dengue_positive_rate": 0.06,
-  "unmet_health_need_pct": 0.06,
-  "hypertension_rate": 0.05,
-  "malaria_risk_weight": 0.05,
-  "climate_dengue_risk": 0.04,
-  "tb_incidence_national": 0.04,
-  "diabetes_prevalence_natl": 0.04,
-  "u5_deaths_national": 0.04,
-  "underweight_pct_national": 0.04,
-  "malaria_cases_national": 0.02
+  "dengue": 50.1,
+  "measles": 90.6,
+  "maternal": 76.6,
+  "diabetes": 42.2,
+  "bp": 95.6
 }
