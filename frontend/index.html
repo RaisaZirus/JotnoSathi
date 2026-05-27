@@ -28,7 +28,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', Arial, sans-serif; background: #f0f4f8; color: #1a1a1a; }
 
-        /* ── Header ── */
         header {
             background: var(--green);
             color: white;
@@ -40,7 +39,6 @@
         }
         header h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.3px; }
 
-        /* ── Alert ticker ── */
         #alert-banner {
             display: none;
             background: #b71c1c;
@@ -56,7 +54,6 @@
 
         #offline-banner { display: none; background: #e65100; color: white; text-align: center; padding: 8px; font-size: 0.85rem; }
 
-        /* ── Tabs ── */
         .tab-bar {
             display: flex;
             background: white;
@@ -82,7 +79,6 @@
         .screen { display: none; padding: 16px; }
         .screen.active { display: block; }
 
-        /* ── Generic card ── */
         .card {
             background: white;
             border-radius: var(--radius);
@@ -91,9 +87,8 @@
             box-shadow: var(--shadow);
         }
 
-        /* ── Form ── */
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.88rem; }
-        textarea, select, input {
+        textarea, select, input[type="text"], input[type="number"] {
             width: 100%; padding: 10px;
             border: 1.5px solid #ddd; border-radius: 8px;
             font-size: 0.92rem; margin-bottom: 14px;
@@ -102,6 +97,7 @@
         }
         textarea:focus, select:focus, input:focus { border-color: var(--green); outline: none; }
         textarea { height: 100px; resize: vertical; }
+
         .btn-primary {
             width: 100%; padding: 13px;
             background: var(--green); color: white;
@@ -122,7 +118,6 @@
         }
         .btn-outline:hover { background: var(--green-light); }
 
-        /* ── Risk badges ── */
         .badge {
             display: inline-block;
             padding: 3px 12px;
@@ -130,13 +125,14 @@
             font-weight: 600; font-size: 0.78rem;
             letter-spacing: 0.3px;
         }
-        .badge-CRITICAL { background: var(--critical-bg); color: var(--critical); }
-        .badge-HIGH     { background: var(--high-bg);     color: var(--high); }
-        .badge-MODERATE { background: var(--moderate-bg); color: var(--moderate); }
-        .badge-LOW      { background: var(--low-bg);      color: var(--low); }
-        .badge-HIGH-triage { background: var(--critical-bg); color: var(--critical); }
-        .badge-MEDIUM   { background: var(--moderate-bg); color: var(--moderate); }
-        .badge-UNKNOWN  { background: #f5f5f5; color: #555; }
+        .badge-CRITICAL      { background: var(--critical-bg); color: var(--critical); }
+        .badge-HIGH          { background: var(--high-bg);     color: var(--high); }
+        .badge-MODERATE      { background: var(--moderate-bg); color: var(--moderate); }
+        .badge-LOW           { background: var(--low-bg);      color: var(--low); }
+        .badge-HIGH-triage   { background: var(--critical-bg); color: var(--critical); }
+        .badge-EMERGENCY     { background: var(--critical-bg); color: var(--critical); }
+        .badge-MEDIUM        { background: var(--moderate-bg); color: var(--moderate); }
+        .badge-UNKNOWN       { background: #f5f5f5; color: #555; }
 
         .result-box {
             background: #f9fbf9;
@@ -161,11 +157,19 @@
         #voice-btn.listening { background: #ffebee; border-color: var(--critical); color: var(--critical); }
         .loader { text-align: center; padding: 20px; color: var(--green); font-size: 0.92rem; display: none; }
 
-        /* ══════════════════════════════════════
-           RISK MAP — complete redesign
-        ══════════════════════════════════════ */
+        /* ── Disease tag badges in triage result ── */
+        .disease-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            margin-right: 6px;
+        }
 
-        /* Stats row */
+        /* ── Risk Map ── */
         .risk-stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -189,9 +193,7 @@
         }
         .stat-label { font-size: 0.68rem; color: #999; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
 
-        /* Division list — horizontal bar chart style */
         .division-list { display: flex; flex-direction: column; gap: 8px; }
-
         .div-row {
             background: white;
             border-radius: 10px;
@@ -203,16 +205,8 @@
             position: relative;
             overflow: hidden;
         }
-        .div-row::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 4px;
-            border-radius: 10px 0 0 10px;
-        }
         .div-row.selected { border-color: var(--green); box-shadow: 0 2px 12px rgba(26,127,90,0.2); }
         .div-row:hover { transform: translateX(3px); }
-
         .div-row-top {
             display: flex;
             justify-content: space-between;
@@ -220,29 +214,11 @@
             margin-bottom: 7px;
         }
         .div-name { font-weight: 600; font-size: 0.92rem; }
-        .div-score-num {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.88rem;
-            font-weight: 500;
-        }
-
-        /* Animated bar */
-        .bar-track {
-            height: 6px;
-            background: #f0f0f0;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 6px;
-        }
-        .bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .div-score-num { font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 500; }
+        .bar-track { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+        .bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
         .div-factor { font-size: 0.75rem; color: #888; }
 
-        /* Expanded detail panel */
         #detail-panel {
             background: white;
             border-radius: 12px;
@@ -257,34 +233,13 @@
             from { opacity: 0; transform: translateY(-8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 14px;
-        }
+        .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
         .detail-title { font-size: 1.1rem; font-weight: 600; }
         .detail-subtitle { font-size: 0.78rem; color: #888; margin-top: 2px; }
-
-        .big-score {
-            font-family: 'DM Mono', monospace;
-            font-size: 2.2rem;
-            font-weight: 500;
-            line-height: 1;
-        }
+        .big-score { font-family: 'DM Mono', monospace; font-size: 2.2rem; font-weight: 500; line-height: 1; }
         .score-of { font-size: 0.75rem; color: #999; }
-
         .factors-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
-        .factor-tag {
-            background: #f0f4f8;
-            color: #444;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 0.76rem;
-            font-weight: 500;
-        }
-
+        .factor-tag { background: #f0f4f8; color: #444; border-radius: 20px; padding: 4px 12px; font-size: 0.76rem; font-weight: 500; }
         .briefing-box {
             background: #f1f8e9;
             border-left: 3px solid #558b2f;
@@ -297,28 +252,41 @@
             color: #333;
         }
 
-        /* Feedback loop visual */
-        .feedback-loop {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 14px;
+        /* ── Per-disease score mini bars ── */
+        .per-disease-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             margin: 12px 0;
         }
-        .feedback-loop-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .disease-mini {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px 10px;
         }
-        .loop-steps {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
+        .disease-mini-label { font-size: 0.72rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .disease-mini-bar-track { height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; }
+        .disease-mini-bar { height: 100%; border-radius: 2px; width: 0%; transition: width 0.8s ease; }
+        .disease-mini-score { font-size: 0.7rem; font-family: 'DM Mono', monospace; color: #888; float: right; margin-top: -14px; }
+
+        /* ── Dynamic field report form ── */
+        .field-report { border-top: 1px solid #eee; padding-top: 14px; margin-top: 12px; }
+        .field-report-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; color: #333; }
+        .fr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .fr-row select, .fr-row input { margin-bottom: 0; }
+        .fr-fields { margin-top: 10px; }
+        .fr-fields label { font-size: 0.8rem; font-weight: 500; color: #555; margin-bottom: 3px; }
+        .fr-fields input, .fr-fields select { font-size: 0.85rem; padding: 8px; margin-bottom: 8px; }
+        .fr-fields .fr-row-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .fr-fields .fr-row-inner input,
+        .fr-fields .fr-row-inner select { margin-bottom: 0; }
+        #fr-status { display: none; font-size: 0.8rem; margin-top: 8px; padding: 8px 12px; border-radius: 6px; }
+        #fr-status.success { background: #e8f5e9; color: #2e7d32; }
+        #fr-status.error   { background: #ffebee; color: #c62828; }
+
+        /* ── Feedback loop ── */
+        .feedback-loop { background: #f9f9f9; border-radius: 10px; padding: 14px; margin: 12px 0; }
+        .loop-steps { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
         .loop-step {
             background: white;
             border: 1.5px solid #ddd;
@@ -329,67 +297,31 @@
             color: #555;
             white-space: nowrap;
         }
-        .loop-step.active {
-            background: var(--green-light);
-            border-color: var(--green);
-            color: var(--green);
-        }
-        .loop-arrow {
-            color: #bbb;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-        .loop-pulse {
-            width: 8px; height: 8px;
-            background: var(--green);
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
-        }
+        .loop-step.active { background: var(--green-light); border-color: var(--green); color: var(--green); }
+        .loop-arrow { color: #bbb; font-size: 0.85rem; flex-shrink: 0; }
+        .loop-pulse { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
 
-        /* Field report form */
-        .field-report {
-            border-top: 1px solid #eee;
-            padding-top: 14px;
-            margin-top: 12px;
-        }
-        .field-report-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        .fr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .fr-row select { margin-bottom: 0; }
-        #fr-status {
-            display: none;
-            font-size: 0.8rem;
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 6px;
-        }
-        #fr-status.success { background: #e8f5e9; color: #2e7d32; }
-        #fr-status.error   { background: #ffebee; color: #c62828; }
+        .coverage-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .coverage-chip { background: var(--green-light); color: var(--green-dark); border-radius: 20px; padding: 4px 12px; font-size: 0.74rem; font-weight: 500; }
 
-        /* Model coverage chip row */
-        .coverage-chips {
+        /* ── Queue indicator ── */
+        .queue-indicator {
             display: flex;
-            flex-wrap: wrap;
             gap: 6px;
-            margin-top: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
         }
-        .coverage-chip {
-            background: var(--green-light);
-            color: var(--green-dark);
+        .queue-pill {
+            font-size: 0.72rem;
+            padding: 3px 10px;
             border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 0.74rem;
-            font-weight: 500;
+            font-weight: 600;
+            background: #f5f5f5;
+            color: #555;
+            border: 1px solid #e0e0e0;
         }
+        .queue-pill.ready { background: #fff3e0; color: #e65100; border-color: #e65100; }
     </style>
 </head>
 <body>
@@ -404,7 +336,7 @@
 
 <div class="tab-bar">
     <button class="active" onclick="showTab('triage', event)">Triage</button>
-    <button onclick="showTab('protocols', event)">Protocols</button>
+    <button onclick="showTab('reports', event)">Reports</button>
     <button onclick="showTab('log', event)">Log</button>
     <button onclick="showTab('riskmap', event)">🗺️ Risk Map</button>
     <button onclick="showTab('map', event)">Referral</button>
@@ -413,11 +345,29 @@
 <!-- ══ TAB 1: TRIAGE ══════════════════════════════════════════════ -->
 <div id="tab-triage" class="screen active">
     <div class="card">
-        <label>Language</label>
-        <select id="lang">
-            <option value="en">English</option>
-            <option value="bn">বাংলা</option>
-        </select>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+                <label>Language</label>
+                <select id="lang">
+                    <option value="en">English</option>
+                    <option value="bn">বাংলা</option>
+                </select>
+            </div>
+            <div>
+                <label>Division</label>
+                <select id="triage-division">
+                    <option value="Unknown">Select division...</option>
+                    <option>Barishal</option>
+                    <option>Chattogram</option>
+                    <option>Dhaka</option>
+                    <option>Khulna</option>
+                    <option>Mymensingh</option>
+                    <option>Rajshahi</option>
+                    <option>Rangpur</option>
+                    <option>Sylhet</option>
+                </select>
+            </div>
+        </div>
         <button id="voice-btn" onclick="startVoice()">🎤 Tap to speak symptoms</button>
         <label>Patient Symptoms</label>
         <textarea id="symptoms" placeholder="Describe the patient's symptoms..."></textarea>
@@ -425,19 +375,87 @@
     </div>
     <div class="loader" id="loader">⏳ Analyzing with AI... please wait</div>
     <div class="card" id="result-card" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <strong>AI Recommendation</strong>
             <span class="badge" id="risk-badge">-</span>
         </div>
+        <div style="margin-bottom:10px;">
+            <span class="disease-tag" id="disease-tag" style="display:none;"></span>
+            <span id="report-type-tag" style="font-size:0.74rem; color:#888;"></span>
+        </div>
         <div class="result-box" id="result-text"></div>
+        <div id="queue-indicator-triage" style="margin-top:10px; display:none;">
+            <div style="font-size:0.75rem; color:#888; margin-bottom:4px;">Queue status after this report:</div>
+            <div id="queue-bar-triage"></div>
+        </div>
     </div>
 </div>
 
-<!-- ══ TAB 2: PROTOCOLS ══════════════════════════════════════════ -->
-<div id="tab-protocols" class="screen">
+<!-- ══ TAB 2: MANUAL REPORTS ═════════════════════════════════════ -->
+<div id="tab-reports" class="screen">
     <div class="card">
-        <h3 style="margin-bottom:12px;">📋 Loaded Protocols</h3>
-        <div id="protocols-list">Loading...</div>
+        <h3 style="margin-bottom:4px;">📋 Manual Field Report</h3>
+        <p style="font-size:0.78rem; color:#888; margin-bottom:16px;">For cases not captured through triage</p>
+
+        <!-- Step 1: Division + Disease -->
+        <label>Division</label>
+        <select id="rpt-division">
+            <option value="">Select division...</option>
+            <option>Barishal</option>
+            <option>Chattogram</option>
+            <option>Dhaka</option>
+            <option>Khulna</option>
+            <option>Mymensingh</option>
+            <option>Rajshahi</option>
+            <option>Rangpur</option>
+            <option>Sylhet</option>
+        </select>
+
+        <label>Disease Domain</label>
+        <select id="rpt-disease" onchange="renderDiseaseFields()">
+            <option value="">Select disease...</option>
+            <option value="dengue">🦟 Dengue</option>
+            <option value="measles">🔴 Measles (Active Outbreak 2026)</option>
+            <option value="maternal">🤰 Maternal / ANC</option>
+            <option value="diabetes">🩸 Diabetes</option>
+            <option value="bp">💊 Blood Pressure / Hypertension</option>
+        </select>
+
+        <!-- Step 2: Dynamic disease-specific fields -->
+        <div id="disease-fields" style="display:none;">
+            <div style="border-top:1px solid #f0f0f0; padding-top:14px; margin-bottom:14px;" id="disease-fields-inner"></div>
+
+            <!-- Common fields -->
+            <label>Outcome</label>
+            <select id="rpt-outcome">
+                <option value="monitoring">Monitoring at home</option>
+                <option value="treated">Treated on site</option>
+                <option value="referred">Referred to facility</option>
+            </select>
+
+            <label>Additional notes (optional)</label>
+            <textarea id="rpt-symptoms" placeholder="Any other observations..." style="height:70px;"></textarea>
+
+            <!-- Report type banner -->
+            <div id="rpt-type-banner" style="display:none; padding:10px 14px; border-radius:8px; font-size:0.82rem; margin-bottom:14px;"></div>
+
+            <button class="btn-primary" onclick="submitManualReport()" id="rpt-submit-btn">📤 Submit Field Report</button>
+            <div id="rpt-status" style="display:none; margin-top:10px; padding:10px 14px; border-radius:8px; font-size:0.82rem;"></div>
+        </div>
+    </div>
+
+    <!-- Queue status card -->
+    <div class="card" id="queue-status-card">
+        <div style="font-size:0.85rem; font-weight:600; margin-bottom:10px; color:#444;">🔄 Outbreak Queue Status</div>
+        <div id="queue-status-display">Loading...</div>
+        <div style="font-size:0.72rem; color:#aaa; margin-top:8px;">Dengue and measles reports build toward model retrain at N=5</div>
+    </div>
+
+    <!-- Registry status card -->
+    <div class="card">
+        <div style="font-size:0.85rem; font-weight:600; margin-bottom:10px; color:#444;">📊 Case Registry (NCD + Maternal)</div>
+        <div id="registry-status-display">Loading...</div>
+        <div style="font-size:0.72rem; color:#aaa; margin-top:8px;">Diabetes, BP, and maternal cases build district caseload data</div>
     </div>
 </div>
 
@@ -450,10 +468,9 @@
     <div id="log-list"></div>
 </div>
 
-<!-- ══ TAB 4: RISK MAP (REDESIGNED) ═════════════════════════════ -->
+<!-- ══ TAB 4: RISK MAP ════════════════════════════════════════════ -->
 <div id="tab-riskmap" class="screen">
 
-    <!-- Stats pills -->
     <div class="risk-stats">
         <div class="stat-pill">
             <div class="stat-num" id="stat-critical" style="color:var(--critical);">–</div>
@@ -473,27 +490,26 @@
         </div>
     </div>
 
-    <!-- FEEDBACK LOOP (always visible) -->
     <div class="card" style="padding:14px; margin-bottom:14px;">
         <div style="font-size:0.82rem; font-weight:600; color:#444; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
             <span class="loop-pulse"></span>
             Closed feedback loop — active
         </div>
         <div class="loop-steps">
-            <div class="loop-step active">Risk Engine<br><span style="font-size:0.68rem; font-weight:400;">XGBoost + WHO/DHS</span></div>
+            <div class="loop-step active">Risk Engine<br><span style="font-size:0.68rem; font-weight:400;">WHO/DHS data</span></div>
             <div class="loop-arrow">→</div>
-            <div class="loop-step active">Worker Briefing<br><span style="font-size:0.68rem; font-weight:400;">Which districts to visit</span></div>
+            <div class="loop-step active">Worker Briefing<br><span style="font-size:0.68rem; font-weight:400;">District priorities</span></div>
             <div class="loop-arrow">→</div>
-            <div class="loop-step active">Field Observation<br><span style="font-size:0.68rem; font-weight:400;">Shebika reports outcome</span></div>
+            <div class="loop-step active">Field Observation<br><span style="font-size:0.68rem; font-weight:400;">Shebika reports</span></div>
             <div class="loop-arrow">→</div>
-            <div class="loop-step active">Score Update<br><span style="font-size:0.68rem; font-weight:400;">Live model retrain</span></div>
+            <div class="loop-step active">Score Update<br><span style="font-size:0.68rem; font-weight:400;">Live retrain</span></div>
         </div>
         <div style="margin-top:10px; font-size:0.75rem; color:#888;">
             13 real datasets · Field reports trigger live model retrain · Scores update in real time
+            <span id="last-updated" style="float:right; color:#bbb;"></span>
         </div>
     </div>
 
-    <!-- Division detail panel (appears when row tapped) -->
     <div id="detail-panel">
         <div class="detail-header">
             <div>
@@ -509,57 +525,55 @@
         <div class="bar-track">
             <div class="bar-fill" id="detail-bar"></div>
         </div>
+
+        <!-- Per-disease mini scores -->
+        <div class="per-disease-grid" id="per-disease-grid"></div>
+
         <div class="factors-row" id="detail-factors"></div>
         <div class="briefing-box" id="detail-briefing"></div>
 
-        <!-- Field report -->
+        <!-- Field report form (inline, for quick submission from map) -->
         <div class="field-report">
-            <div class="field-report-title">📋 Submit field observation</div>
+            <div class="field-report-title">📋 Quick field observation</div>
             <div class="fr-row">
-                <select id="fr-disease">
+                <select id="fr-disease" onchange="renderQuickFields()">
                     <option value="">Suspected disease...</option>
                     <option value="dengue">Dengue</option>
                     <option value="measles">Measles</option>
-                    <option value="malaria">Malaria</option>
+                    <option value="maternal">Maternal</option>
                     <option value="diabetes">Diabetes</option>
-                    <option value="tuberculosis">Tuberculosis</option>
-                    <option value="maternal_complication">Maternal complication</option>
-                    <option value="diarrhea">Diarrhea / Cholera</option>
-                    <option value="pneumonia">Pneumonia</option>
-                    <option value="other">Other</option>
+                    <option value="bp">Blood Pressure</option>
                 </select>
                 <select id="fr-outcome">
                     <option value="monitoring">Monitoring</option>
-                    <option value="treated">Treated on site</option>
+                    <option value="treated">Treated</option>
                     <option value="referred">Referred</option>
                 </select>
             </div>
+            <div id="fr-quick-fields" style="margin-top:6px;"></div>
             <button class="btn-outline" onclick="submitFieldReport()">📤 Submit → feeds model</button>
             <div id="fr-status"></div>
         </div>
     </div>
 
-    <!-- Division rows — bar chart style -->
     <div class="card" style="padding:14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <span style="font-weight:600; font-size:0.92rem;">Division Risk Scores</span>
-            <span style="font-size:0.72rem; color:#999;">Tap a row for briefing</span>
+            <span style="font-size:0.72rem; color:#999;">Tap for briefing</span>
         </div>
         <div class="division-list" id="division-list">
             <div style="color:#aaa; text-align:center; padding:24px; font-size:0.88rem;">Loading risk data...</div>
         </div>
     </div>
 
-    <!-- Model coverage -->
     <div class="card" style="padding:14px;">
         <div style="font-size:0.82rem; font-weight:600; color:#444; margin-bottom:6px;">Model coverage</div>
         <div class="coverage-chips">
             <span class="coverage-chip">Dengue</span>
-            <span class="coverage-chip">Diabetes</span>
-            <span class="coverage-chip">Tuberculosis</span>
-            <span class="coverage-chip">Malaria</span>
             <span class="coverage-chip">Measles 2026</span>
             <span class="coverage-chip">Maternal health</span>
+            <span class="coverage-chip">Diabetes</span>
+            <span class="coverage-chip">Hypertension</span>
             <span class="coverage-chip">Child mortality</span>
             <span class="coverage-chip">Anemia</span>
             <span class="coverage-chip">Nutrition</span>
@@ -567,7 +581,7 @@
             <span class="coverage-chip">Climate risk</span>
             <span class="coverage-chip">ANC coverage</span>
         </div>
-        <div style="font-size:0.72rem; color:#aaa; margin-top:10px;">WHO/HDX · DHS Bangladesh · Kaggle · ScienceDirect · Wikipedia (live)</div>
+        <div style="font-size:0.72rem; color:#aaa; margin-top:10px;">WHO/HDX · DHS Bangladesh · Kaggle · ScienceDirect</div>
     </div>
 </div>
 
@@ -590,20 +604,76 @@
 </div>
 
 <script>
-// ── Config ─────────────────────────────────────────────────────────────────
 const API = "http://127.0.0.1:8000";
-// const API = "http://10.67.136.45:8000";  // hotspot IP — uncomment for demo
+// const API = "http://10.67.136.45:8000";  // hotspot — uncomment for demo
 
 let sessionLog = JSON.parse(localStorage.getItem("niramoy_log") || "[]");
 let riskData = {};
 let selectedDivision = null;
 let riskLoaded = false;
+let riskPollInterval = null;
+
+// ── Disease-specific field definitions ────────────────────────────────────────
+const DISEASE_FIELDS = {
+    dengue: {
+        color: "#e65100",
+        icon: "🦟",
+        report_type: "outbreak",
+        label: "Dengue — feeds risk map",
+        fields: [
+            { id: "fever_days",   label: "Days of fever",        type: "number", placeholder: "e.g. 4", min: 1, max: 14 },
+            { id: "rash_present", label: "Rash present?",        type: "select", options: [["", "Select..."], ["true", "Yes"], ["false", "No"]] },
+            { id: "bleeding",     label: "Bleeding signs?",      type: "select", options: [["", "Select..."], ["true", "Yes — gums/nose"], ["false", "No"]] },
+        ]
+    },
+    measles: {
+        color: "#c62828",
+        icon: "🔴",
+        report_type: "outbreak",
+        label: "Measles — feeds risk map (ACTIVE OUTBREAK 2026)",
+        fields: [
+            { id: "fever_days",          label: "Days of fever",        type: "number", placeholder: "e.g. 3", min: 1, max: 14 },
+            { id: "rash_present",        label: "Rash present?",        type: "select", options: [["", "Select..."], ["true", "Yes"], ["false", "No"]] },
+            { id: "vaccination_status",  label: "Vaccination status",   type: "select", options: [["", "Select..."], ["unvaccinated", "Unvaccinated"], ["vaccinated", "Vaccinated"], ["partial", "Partially vaccinated"], ["unknown", "Unknown"]] },
+        ]
+    },
+    maternal: {
+        color: "#7b1fa2",
+        icon: "🤰",
+        report_type: "registry",
+        label: "Maternal — adds to case registry",
+        fields: [
+            { id: "week",              label: "Gestational week",      type: "number", placeholder: "e.g. 28", min: 1, max: 42 },
+            { id: "complication_type", label: "Complication type",     type: "select", options: [["", "Select..."], ["bleeding", "Bleeding"], ["hypertension", "Hypertension / Pre-eclampsia"], ["no_fetal_movement", "No fetal movement"], ["preterm_labour", "Preterm labour"], ["other", "Other"]] },
+        ]
+    },
+    diabetes: {
+        color: "#1565c0",
+        icon: "🩸",
+        report_type: "registry",
+        label: "Diabetes — adds to case registry",
+        fields: [
+            { id: "fasting_glucose", label: "Fasting glucose (mmol/L)", type: "number", placeholder: "e.g. 7.2", step: "0.1" },
+            { id: "hba1c",           label: "HbA1c % (if available)",   type: "number", placeholder: "e.g. 6.8", step: "0.1" },
+        ]
+    },
+    bp: {
+        color: "#00695c",
+        icon: "💊",
+        report_type: "registry",
+        label: "Blood Pressure — adds to case registry",
+        fields: [
+            { id: "systolic",  label: "Systolic (mmHg)",  type: "number", placeholder: "e.g. 145", min: 60, max: 250 },
+            { id: "diastolic", label: "Diastolic (mmHg)", type: "number", placeholder: "e.g. 95",  min: 40, max: 150 },
+        ]
+    }
+};
 
 // ── Online/offline ─────────────────────────────────────────────────────────
 function updateOnlineStatus() {
     document.getElementById("offline-banner").style.display = navigator.onLine ? "none" : "block";
 }
-window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("online",  updateOnlineStatus);
 window.addEventListener("offline", updateOnlineStatus);
 updateOnlineStatus();
 
@@ -613,10 +683,11 @@ function showTab(name, e) {
     document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
     document.getElementById("tab-" + name).classList.add("active");
     if (e && e.target) e.target.classList.add("active");
-    if (name === "log")       renderLog();
-    if (name === "protocols") loadProtocols();
-    if (name === "map")       setTimeout(initReferralMap, 100);
-    if (name === "riskmap")   loadRiskMap();
+    if (name === "log")      renderLog();
+    if (name === "map")      setTimeout(initReferralMap, 100);
+    if (name === "riskmap")  { loadRiskMap(); startRiskPolling(); }
+    if (name === "reports")  { loadQueueStatus(); loadRegistryStatus(); }
+    if (name !== "riskmap")  stopRiskPolling();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -643,27 +714,79 @@ function startVoice() {
 async function submitTriage() {
     const symptoms = document.getElementById("symptoms").value.trim();
     const language = document.getElementById("lang").value;
+    const division = document.getElementById("triage-division").value;
     if (!symptoms) { alert("Please enter symptoms first."); return; }
+
     document.getElementById("submit-btn").disabled = true;
     document.getElementById("loader").style.display = "block";
     document.getElementById("result-card").style.display = "none";
+
     try {
         const res = await fetch(`${API}/triage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ symptoms, language })
+            body: JSON.stringify({ symptoms, language, division, worker_id: "shebika_field" })
         });
         const data = await res.json();
         const text = data.raw_response;
-        const riskMatch = text.match(/RISK LEVEL[:\s]*(High|Medium|Low)/i);
-        const risk = riskMatch ? riskMatch[1].toUpperCase() : "UNKNOWN";
-        document.getElementById("result-text").textContent = text;
+
+        // Risk badge
+        const risk = data.risk_level || "UNKNOWN";
         const badge = document.getElementById("risk-badge");
         badge.textContent = risk;
-        badge.className = `badge badge-${risk}-triage`;
+        badge.className = `badge badge-${risk}`;
+
+        // Disease tag
+        const diseaseTag = document.getElementById("disease-tag");
+        if (data.disease_detected && data.disease_detected !== "general") {
+            const dc = DISEASE_FIELDS[data.disease_detected];
+            diseaseTag.textContent = (dc?.icon || "") + " " + data.disease_detected.toUpperCase();
+            diseaseTag.style.display = "inline-block";
+        } else {
+            diseaseTag.style.display = "none";
+        }
+
+        // Report type tag
+        const rtTag = document.getElementById("report-type-tag");
+        if (data.report_type === "outbreak") {
+            rtTag.textContent = `📊 Queue: ${data.queue_size}/5`;
+            rtTag.style.color = data.queue_size >= 4 ? "#e65100" : "#888";
+        } else {
+            rtTag.textContent = "📋 Added to case registry";
+        }
+
+        document.getElementById("result-text").textContent = text;
         document.getElementById("result-card").style.display = "block";
-        sessionLog.unshift({ time: new Date().toLocaleTimeString(), symptoms: symptoms.substring(0, 60) + "...", risk, response: text });
+
+        // Queue indicator
+        if (data.report_type === "outbreak" && data.queue_size !== null) {
+            const qi = document.getElementById("queue-indicator-triage");
+            const qb = document.getElementById("queue-bar-triage");
+            qi.style.display = "block";
+            const pct = (data.queue_size / 5) * 100;
+            const color = data.queue_size >= 5 ? "#2e7d32" : data.queue_size >= 3 ? "#e65100" : "#888";
+            qb.innerHTML = `
+                <div style="height:6px; background:#f0f0f0; border-radius:3px; overflow:hidden; margin-bottom:4px;">
+                    <div style="height:100%; width:${pct}%; background:${color}; border-radius:3px; transition:width 0.5s;"></div>
+                </div>
+                <div style="font-size:0.72rem; color:${color};">${data.queue_size}/5 reports — ${5 - data.queue_size > 0 ? (5 - data.queue_size) + ' more until model retrain' : '✅ Retrain triggered!'}</div>
+            `;
+        }
+
+        if (data.retrain_triggered) {
+            // Refresh risk map if open
+            riskLoaded = false;
+        }
+
+        sessionLog.unshift({
+            time: new Date().toLocaleTimeString(),
+            symptoms: symptoms.substring(0, 60) + "...",
+            disease: data.disease_detected,
+            risk,
+            response: text
+        });
         localStorage.setItem("niramoy_log", JSON.stringify(sessionLog.slice(0, 50)));
+
     } catch { alert("Connection error. Check if the backend is running."); }
     finally {
         document.getElementById("submit-btn").disabled = false;
@@ -672,15 +795,189 @@ async function submitTriage() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// PROTOCOLS
+// MANUAL REPORT — dynamic fields
 // ══════════════════════════════════════════════════════════════════
-async function loadProtocols() {
+function renderDiseaseFields() {
+    const disease = document.getElementById("rpt-disease").value;
+    const container = document.getElementById("disease-fields");
+    const inner = document.getElementById("disease-fields-inner");
+    const banner = document.getElementById("rpt-type-banner");
+
+    if (!disease) { container.style.display = "none"; return; }
+
+    const def = DISEASE_FIELDS[disease];
+    if (!def) { container.style.display = "none"; return; }
+
+    // Render fields
+    inner.innerHTML = def.fields.map(f => {
+        if (f.type === "select") {
+            return `
+                <label>${f.label}</label>
+                <select id="rpt-${f.id}">
+                    ${f.options.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}
+                </select>`;
+        } else {
+            return `
+                <label>${f.label}</label>
+                <input type="number" id="rpt-${f.id}"
+                    placeholder="${f.placeholder || ''}"
+                    ${f.min !== undefined ? `min="${f.min}"` : ""}
+                    ${f.max !== undefined ? `max="${f.max}"` : ""}
+                    ${f.step !== undefined ? `step="${f.step}"` : ""}>`;
+        }
+    }).join("");
+
+    // Report type banner
+    if (def.report_type === "outbreak") {
+        banner.style.display = "block";
+        banner.style.background = "#fff3e0";
+        banner.style.color = "#e65100";
+        banner.style.borderLeft = "3px solid #e65100";
+        banner.innerHTML = `<strong>${def.icon} Outbreak disease</strong> — This report feeds the division risk map. 5 reports trigger a model refit.`;
+    } else {
+        banner.style.display = "block";
+        banner.style.background = "#e3f2fd";
+        banner.style.color = "#1565c0";
+        banner.style.borderLeft = "3px solid #1565c0";
+        banner.innerHTML = `<strong>${def.icon} Registry disease</strong> — This report adds to the district case registry for caseload tracking.`;
+    }
+
+    container.style.display = "block";
+    document.getElementById("rpt-status").style.display = "none";
+}
+
+function _getFieldValue(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el) return null;
+    const val = el.value;
+    if (val === "" || val === null) return null;
+    if (el.type === "number") return parseFloat(val) || null;
+    if (val === "true") return true;
+    if (val === "false") return false;
+    return val;
+}
+
+async function submitManualReport() {
+    const division = document.getElementById("rpt-division").value;
+    const disease  = document.getElementById("rpt-disease").value;
+    const outcome  = document.getElementById("rpt-outcome").value;
+    const symptoms = document.getElementById("rpt-symptoms").value || "Manual field observation";
+
+    if (!division) { alert("Please select a division."); return; }
+    if (!disease)  { alert("Please select a disease."); return; }
+
+    const def = DISEASE_FIELDS[disease];
+    const statusEl = document.getElementById("rpt-status");
+    const btn = document.getElementById("rpt-submit-btn");
+
+    btn.disabled = true;
+    statusEl.style.display = "block";
+    statusEl.style.background = "#f5f5f5";
+    statusEl.style.color = "#555";
+    statusEl.textContent = "⏳ Submitting...";
+
+    // Build payload with disease-specific fields
+    const payload = {
+        division,
+        symptoms,
+        outcome,
+        disease_suspected: disease,
+        worker_id: "shebika_" + Math.random().toString(36).substr(2, 6),
+    };
+
+    // Add disease-specific fields
+    if (def) {
+        def.fields.forEach(f => {
+            const val = _getFieldValue(`rpt-${f.id}`);
+            if (val !== null) payload[f.id] = val;
+        });
+    }
+
     try {
-        const res = await fetch(`${API}/protocols`);
+        const res = await fetch(`${API}/field-report`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
         const data = await res.json();
-        document.getElementById("protocols-list").innerHTML =
-            data.protocols.map(p => `<div style="padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:0.9rem;">📄 ${p}</div>`).join("");
-    } catch { document.getElementById("protocols-list").textContent = "Could not load protocols."; }
+
+        const isOutbreak = data.report_type === "outbreak";
+        statusEl.style.background = "#e8f5e9";
+        statusEl.style.color = "#2e7d32";
+
+        if (isOutbreak) {
+            const qs = data.queue_size || 0;
+            const retrained = data.retrain_triggered;
+            statusEl.innerHTML = retrained
+                ? `✅ Submitted + <strong>Model retrained!</strong> ${division} score: ${data.score_before} → ${data.score_after} (+${data.score_delta})`
+                : `✅ Submitted. Queue: <strong>${qs}/5</strong>. Need ${5 - qs} more to trigger retrain.`;
+        } else {
+            statusEl.innerHTML = `✅ Case logged. ${disease.charAt(0).toUpperCase() + disease.slice(1)} cases in ${division}: <strong>${data.case_count}</strong>`;
+        }
+
+        if (data.retrain_triggered) riskLoaded = false;
+
+        // Refresh queue/registry panels
+        loadQueueStatus();
+        loadRegistryStatus();
+
+    } catch (e) {
+        statusEl.style.background = "#ffebee";
+        statusEl.style.color = "#c62828";
+        statusEl.textContent = "⚠️ Submission failed. Check connection.";
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// ── Queue status display ───────────────────────────────────────────────────
+async function loadQueueStatus() {
+    try {
+        const res  = await fetch(`${API}/queue-status`);
+        const data = await res.json();
+        const el   = document.getElementById("queue-status-display");
+
+        el.innerHTML = ["dengue", "measles"].map(disease => {
+            const q     = data[disease] || { count: 0, threshold: 5 };
+            const pct   = Math.min((q.count / q.threshold) * 100, 100);
+            const color = q.count >= q.threshold ? "#2e7d32" : q.count >= 3 ? "#e65100" : "#888";
+            const label = disease.charAt(0).toUpperCase() + disease.slice(1);
+            return `
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                        <span style="font-weight:600;">${label}</span>
+                        <span style="color:${color}; font-family:'DM Mono', monospace;">${q.count}/${q.threshold}</span>
+                    </div>
+                    <div style="height:6px; background:#f0f0f0; border-radius:3px; overflow:hidden;">
+                        <div style="height:100%; width:${pct}%; background:${color}; border-radius:3px; transition:width 0.5s;"></div>
+                    </div>
+                    ${q.count >= q.threshold ? '<div style="font-size:0.72rem; color:#2e7d32; margin-top:3px;">✅ Ready to retrain</div>' : ''}
+                </div>`;
+        }).join("");
+    } catch {
+        document.getElementById("queue-status-display").textContent = "Could not load queue status.";
+    }
+}
+
+async function loadRegistryStatus() {
+    try {
+        const res  = await fetch(`${API}/case-registry`);
+        const data = await res.json();
+        const el   = document.getElementById("registry-status-display");
+
+        if (!Object.keys(data.registry).length) {
+            el.innerHTML = '<div style="color:#aaa; font-size:0.82rem;">No cases logged yet.</div>';
+            return;
+        }
+
+        el.innerHTML = Object.entries(data.registry).map(([key, d]) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:0.82rem;">
+                <span><strong>${d.disease.toUpperCase()}</strong> — ${d.division}</span>
+                <span style="background:var(--green-light); color:var(--green-dark); border-radius:12px; padding:2px 10px; font-size:0.74rem; font-weight:600;">${d.case_count} cases</span>
+            </div>`).join("");
+    } catch {
+        document.getElementById("registry-status-display").textContent = "Could not load registry.";
+    }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -690,12 +987,18 @@ function renderLog() {
     const list = document.getElementById("log-list");
     document.getElementById("case-count").textContent = `${sessionLog.length} cases`;
     if (!sessionLog.length) { list.innerHTML = "<p style='color:#aaa; font-size:0.88rem;'>No cases yet today.</p>"; return; }
-    list.innerHTML = sessionLog.map(e => `
+    list.innerHTML = sessionLog.map(e => {
+        const dc = e.disease ? DISEASE_FIELDS[e.disease] : null;
+        return `
         <div class="log-item">
             <div class="time">${e.time}</div>
-            <div><strong>Risk: </strong><span class="badge badge-${e.risk}-triage" style="font-size:0.74rem; padding:2px 10px;">${e.risk}</span></div>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <span class="badge badge-${e.risk}" style="font-size:0.74rem; padding:2px 10px;">${e.risk}</span>
+                ${dc ? `<span style="font-size:0.74rem; color:#555;">${dc.icon} ${e.disease}</span>` : ""}
+            </div>
             <div style="margin-top:5px; color:#666; font-size:0.82rem;">${e.symptoms}</div>
-        </div>`).join("");
+        </div>`;
+    }).join("");
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -703,7 +1006,19 @@ function renderLog() {
 // ══════════════════════════════════════════════════════════════════
 const LEVEL_COLORS = { CRITICAL: "#c62828", HIGH: "#e65100", MODERATE: "#f57f17", LOW: "#2e7d32" };
 
-async function loadRiskMap() {
+function startRiskPolling() {
+    if (riskPollInterval) return;
+    riskPollInterval = setInterval(() => {
+        riskLoaded = false;
+        loadRiskMap(true); // silent refresh
+    }, 30000);
+}
+
+function stopRiskPolling() {
+    if (riskPollInterval) { clearInterval(riskPollInterval); riskPollInterval = null; }
+}
+
+async function loadRiskMap(silent = false) {
     if (riskLoaded) return;
     try {
         const [riskRes, alertRes] = await Promise.all([
@@ -716,23 +1031,36 @@ async function loadRiskMap() {
         riskData = riskJson.divisions;
         riskLoaded = true;
 
-        // Stats
         document.getElementById("stat-critical").textContent = riskJson.summary.critical.length;
         document.getElementById("stat-high").textContent     = riskJson.summary.high.length;
         document.getElementById("stat-moderate").textContent = riskJson.summary.moderate.length;
 
-        // Alert ticker
+        const lastUpdated = document.getElementById("last-updated");
+        if (lastUpdated) lastUpdated.textContent = "Updated " + new Date().toLocaleTimeString();
+
         if (alertJson.alerts?.length) {
             document.getElementById("alert-ticker").textContent =
                 alertJson.alerts.map(a => `🔴 ${a.message}`).join("   ·   ");
             document.getElementById("alert-banner").classList.add("visible");
         }
 
-        renderDivisionList();
+        if (silent) {
+            // Just animate bars in place
+            Object.entries(riskData).forEach(([div, data]) => {
+                const bar = document.getElementById(`bar-${div}`);
+                if (bar) bar.style.width = data.score + "%";
+                const scoreEl = document.querySelector(`#row-${div} .div-score-num`);
+                if (scoreEl) scoreEl.textContent = data.score;
+            });
+        } else {
+            renderDivisionList();
+        }
 
     } catch {
-        document.getElementById("division-list").innerHTML =
-            `<div style="color:#c62828; text-align:center; padding:24px; font-size:0.85rem;">⚠️ Could not load risk data.<br>Is the backend running on port 8000?</div>`;
+        if (!silent) {
+            document.getElementById("division-list").innerHTML =
+                `<div style="color:#c62828; text-align:center; padding:24px; font-size:0.85rem;">⚠️ Could not load risk data.<br>Is the backend running on port 8000?</div>`;
+        }
     }
 }
 
@@ -756,12 +1084,11 @@ function renderDivisionList() {
                 <div class="bar-track">
                     <div class="bar-fill" id="bar-${div}" style="background:${color};"></div>
                 </div>
-                <div class="div-factor">${data.top_factors[0] || ""}</div>
+                <div class="div-factor">${data.top_factors?.[0] || ""}</div>
             </div>
         </div>`;
     }).join("");
 
-    // Animate bars after render
     requestAnimationFrame(() => {
         setTimeout(() => {
             sorted.forEach(([div, data], i) => {
@@ -773,7 +1100,6 @@ function renderDivisionList() {
 }
 
 async function showDivisionDetail(division) {
-    // Deselect previous
     document.querySelectorAll(".div-row").forEach(r => r.classList.remove("selected"));
     const row = document.getElementById(`row-${division}`);
     if (row) row.classList.add("selected");
@@ -784,46 +1110,88 @@ async function showDivisionDetail(division) {
 
     const color = LEVEL_COLORS[data.risk_level] || "#888";
 
-    // Populate header
-    document.getElementById("detail-name").textContent = division + " Division";
-    document.getElementById("detail-sub").textContent = `${data.district_count} districts · ${data.risk_level} risk`;
-    document.getElementById("detail-score").textContent = data.score;
-    document.getElementById("detail-score").style.color = color;
+    document.getElementById("detail-name").textContent    = division + " Division";
+    document.getElementById("detail-sub").textContent     = `${data.district_count} districts · ${data.risk_level} risk`;
+    document.getElementById("detail-score").textContent   = data.score;
+    document.getElementById("detail-score").style.color   = color;
     const badge = document.getElementById("detail-badge");
     badge.textContent = data.risk_level;
-    badge.className = `badge badge-${data.risk_level}`;
+    badge.className   = `badge badge-${data.risk_level}`;
 
-    // Score bar
     const bar = document.getElementById("detail-bar");
-    bar.style.width = "0%";
+    bar.style.width      = "0%";
     bar.style.background = color;
     requestAnimationFrame(() => setTimeout(() => { bar.style.width = data.score + "%"; }, 50));
 
-    // Factors
-    document.getElementById("detail-factors").innerHTML =
-        data.top_factors.map(f => `<span class="factor-tag">⚠️ ${f}</span>`).join("");
+    // Per-disease mini scores
+    const pdGrid = document.getElementById("per-disease-grid");
+    const perDisease = data.per_disease_scores || {};
+    if (Object.keys(perDisease).length) {
+        pdGrid.innerHTML = Object.entries(perDisease).map(([disease, pd]) => {
+            const dc = DISEASE_FIELDS[disease];
+            const dColor = dc?.color || "#888";
+            return `
+                <div class="disease-mini">
+                    <div class="disease-mini-label">${dc?.icon || ""} ${disease.toUpperCase()}</div>
+                    <div class="disease-mini-bar-track">
+                        <div class="disease-mini-bar" id="mini-bar-${division}-${disease}" style="background:${dColor};"></div>
+                    </div>
+                    <div class="disease-mini-score">${pd.score}</div>
+                </div>`;
+        }).join("");
+        // Animate mini bars
+        setTimeout(() => {
+            Object.entries(perDisease).forEach(([disease, pd]) => {
+                const mb = document.getElementById(`mini-bar-${division}-${disease}`);
+                if (mb) mb.style.width = pd.score + "%";
+            });
+        }, 200);
+    } else {
+        pdGrid.innerHTML = "";
+    }
 
-    // Briefing
+    document.getElementById("detail-factors").innerHTML =
+        (data.top_factors || []).map(f => `<span class="factor-tag">⚠️ ${f}</span>`).join("");
+
     document.getElementById("detail-briefing").textContent = "Loading briefing...";
-    document.getElementById("detail-panel").style.display = "block";
+    document.getElementById("detail-panel").style.display  = "block";
     document.getElementById("detail-panel").style.borderTopColor = color;
 
-    // Reset field report
     document.getElementById("fr-disease").value = "";
     document.getElementById("fr-outcome").value = "monitoring";
     document.getElementById("fr-status").style.display = "none";
+    document.getElementById("fr-quick-fields").innerHTML = "";
 
-    // Scroll to panel
     document.getElementById("detail-panel").scrollIntoView({ behavior: "smooth", block: "start" });
 
-    // Fetch worker briefing
     try {
-        const res = await fetch(`${API}/risk/${division}`);
+        const res    = await fetch(`${API}/risk/${division}`);
         const detail = await res.json();
         document.getElementById("detail-briefing").textContent = detail.worker_briefing || "";
     } catch {
-        document.getElementById("detail-briefing").textContent = data.top_factors.join("\n• ");
+        document.getElementById("detail-briefing").textContent = (data.top_factors || []).join("\n• ");
     }
+}
+
+// ── Quick fields for inline risk map report ────────────────────────────────
+function renderQuickFields() {
+    const disease   = document.getElementById("fr-disease").value;
+    const container = document.getElementById("fr-quick-fields");
+    if (!disease || !DISEASE_FIELDS[disease]) { container.innerHTML = ""; return; }
+
+    const def = DISEASE_FIELDS[disease];
+    container.innerHTML = `<div style="font-size:0.74rem; color:${def.report_type === 'outbreak' ? '#e65100' : '#1565c0'}; margin-bottom:6px;">${def.icon} ${def.label}</div>` +
+        def.fields.slice(0, 2).map(f => { // show max 2 fields inline
+            if (f.type === "select") {
+                return `<select id="qfr-${f.id}" style="font-size:0.8rem; padding:6px; margin-bottom:6px; width:100%; border:1.5px solid #ddd; border-radius:6px;">
+                    ${f.options.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}
+                </select>`;
+            }
+            return `<input type="number" id="qfr-${f.id}" placeholder="${f.label}: ${f.placeholder || ''}"
+                style="font-size:0.8rem; padding:6px; margin-bottom:6px; width:100%; border:1.5px solid #ddd; border-radius:6px;"
+                ${f.min !== undefined ? `min="${f.min}"` : ""}
+                ${f.max !== undefined ? `max="${f.max}"` : ""}>`;
+        }).join("");
 }
 
 async function submitFieldReport() {
@@ -835,108 +1203,102 @@ async function submitFieldReport() {
     const statusEl = document.getElementById("fr-status");
     statusEl.style.display = "block";
     statusEl.className = "";
-    statusEl.textContent = "⏳ Submitting and retraining model...";
+    statusEl.textContent = "⏳ Submitting...";
 
-    // Step 1 — Animate loop to "Field Observation" step
     _animateLoopTo(2);
 
+    const def = DISEASE_FIELDS[disease];
+    const payload = {
+        division: selectedDivision,
+        symptoms: "Field observation",
+        outcome,
+        disease_suspected: disease,
+        worker_id: "shebika_" + Math.random().toString(36).substr(2, 6)
+    };
+
+    // Add quick fields if present
+    if (def) {
+        def.fields.slice(0, 2).forEach(f => {
+            const el = document.getElementById(`qfr-${f.id}`);
+            if (el && el.value !== "") {
+                let val = el.value;
+                if (el.type === "number") val = parseFloat(val) || null;
+                else if (val === "true")  val = true;
+                else if (val === "false") val = false;
+                if (val !== null && val !== "") payload[f.id] = val;
+            }
+        });
+    }
+
     try {
-        const res = await fetch(`${API}/field-report`, {
+        const res  = await fetch(`${API}/field-report`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                division: selectedDivision,
-                symptoms: "Field observation",
-                outcome, disease_suspected: disease,
-                worker_id: "shebika_" + Math.random().toString(36).substr(2, 6)
-            })
+            body: JSON.stringify(payload)
         });
         const data = await res.json();
 
-        // Step 2 — Animate loop to "Score Update" 
         setTimeout(() => _animateLoopTo(3), 400);
 
-        // Step 3 — Animate ALL division score bars to new values
         if (data.new_scores) {
             setTimeout(() => _animateScoreUpdate(data.new_scores, data), 800);
         }
 
-        // Step 4 — Show result
-        const delta = data.score_delta;
+        const delta    = data.score_delta || 0;
         const deltaStr = delta > 0 ? `+${delta}` : `${delta}`;
         const deltaColor = delta > 0 ? "#c62828" : "#2e7d32";
-        statusEl.innerHTML = `✅ Submitted. <strong style="color:${deltaColor}">${selectedDivision}: ${data.score_before} → ${data.score_after} (${deltaStr})</strong>`;
+
+        if (data.report_type === "outbreak") {
+            const qs = data.queue_size || 0;
+            statusEl.innerHTML = data.retrain_triggered
+                ? `✅ <strong style="color:#2e7d32">Model retrained!</strong> ${selectedDivision}: ${data.score_before} → ${data.score_after} (<span style="color:${deltaColor}">${deltaStr}</span>)`
+                : `✅ Submitted. Queue: <strong>${qs}/5</strong>`;
+        } else {
+            statusEl.innerHTML = `✅ Case logged. Registry: <strong>${data.case_count}</strong> ${disease} cases in ${selectedDivision}`;
+        }
         statusEl.className = "success";
 
-        // Update riskData in memory with new scores
         if (data.new_scores) {
             Object.keys(data.new_scores).forEach(div => {
                 if (riskData[div]) riskData[div].score = data.new_scores[div];
             });
         }
 
-    } catch (e) {
+    } catch {
         statusEl.textContent = "⚠️ Could not submit. Check connection.";
         statusEl.className = "error";
-        _animateLoopTo(0); // reset loop
+        _animateLoopTo(0);
     }
 }
 
 function _animateLoopTo(activeIndex) {
-    const steps = document.querySelectorAll(".loop-step");
-    steps.forEach((s, i) => {
-        s.classList.remove("active", "completing");
-        if (i <= activeIndex) {
-            setTimeout(() => s.classList.add("active"), i * 200);
-        }
+    document.querySelectorAll(".loop-step").forEach((s, i) => {
+        s.classList.remove("active");
+        if (i <= activeIndex) setTimeout(() => s.classList.add("active"), i * 200);
     });
 }
 
 function _animateScoreUpdate(newScores, reportData) {
-    // Update stats counters
     const levels = { CRITICAL: 0, HIGH: 0, MODERATE: 0, LOW: 0 };
     Object.entries(newScores).forEach(([div, score]) => {
         const level = score >= 70 ? "CRITICAL" : score >= 50 ? "HIGH" : score >= 30 ? "MODERATE" : "LOW";
         levels[level]++;
-        if (riskData[div]) {
-            riskData[div].score = score;
-            riskData[div].risk_level = level;
-            riskData[div].color = LEVEL_COLORS[level];
-        }
+        if (riskData[div]) { riskData[div].score = score; riskData[div].risk_level = level; }
     });
     document.getElementById("stat-critical").textContent = levels.CRITICAL;
     document.getElementById("stat-high").textContent     = levels.HIGH;
     document.getElementById("stat-moderate").textContent = levels.MODERATE;
 
-    // Re-sort and re-render division list with animation
-    const sorted = Object.entries(newScores).sort((a, b) => b[1] - a[1]);
-
-    sorted.forEach(([div, newScore], i) => {
-        const bar = document.getElementById(`bar-${div}`);
-        const row = document.getElementById(`row-${div}`);
+    Object.entries(newScores).forEach(([div, newScore], i) => {
+        const bar     = document.getElementById(`bar-${div}`);
+        const row     = document.getElementById(`row-${div}`);
         const scoreEl = row ? row.querySelector(".div-score-num") : null;
+        const level   = newScore >= 70 ? "CRITICAL" : newScore >= 50 ? "HIGH" : newScore >= 30 ? "MODERATE" : "LOW";
+        const color   = LEVEL_COLORS[level];
 
-        if (bar) {
-            // Animate bar width change
-            setTimeout(() => {
-                bar.style.transition = "width 1s cubic-bezier(0.4, 0, 0.2, 1)";
-                bar.style.width = newScore + "%";
-                const level = newScore >= 70 ? "CRITICAL" : newScore >= 50 ? "HIGH" : newScore >= 30 ? "MODERATE" : "LOW";
-                bar.style.background = LEVEL_COLORS[level];
-            }, i * 60);
-        }
+        if (bar)     setTimeout(() => { bar.style.width = newScore + "%"; bar.style.background = color; }, i * 60);
+        if (scoreEl) setTimeout(() => { _countUp(scoreEl, parseFloat(scoreEl.textContent) || 0, newScore, 800); scoreEl.style.color = color; }, i * 60 + 100);
 
-        if (scoreEl) {
-            // Count-up animation for score number
-            setTimeout(() => {
-                const oldScore = parseFloat(scoreEl.textContent) || 0;
-                _countUp(scoreEl, oldScore, newScore, 800);
-                const level = newScore >= 70 ? "CRITICAL" : newScore >= 50 ? "HIGH" : newScore >= 30 ? "MODERATE" : "LOW";
-                scoreEl.style.color = LEVEL_COLORS[level];
-            }, i * 60 + 100);
-        }
-
-        // Flash the changed division briefly
         if (row && div === reportData.division) {
             setTimeout(() => {
                 row.style.transition = "background 0.3s";
@@ -946,7 +1308,6 @@ function _animateScoreUpdate(newScores, reportData) {
         }
     });
 
-    // Also update the detail panel score if the selected division changed
     if (selectedDivision && newScores[selectedDivision] !== undefined) {
         const newScore = newScores[selectedDivision];
         const scoreEl  = document.getElementById("detail-score");
@@ -954,25 +1315,10 @@ function _animateScoreUpdate(newScores, reportData) {
         const badgeEl  = document.getElementById("detail-badge");
         const level    = newScore >= 70 ? "CRITICAL" : newScore >= 50 ? "HIGH" : newScore >= 30 ? "MODERATE" : "LOW";
         const color    = LEVEL_COLORS[level];
-
-        if (scoreEl) {
-            const oldScore = parseFloat(scoreEl.textContent) || 0;
-            setTimeout(() => _countUp(scoreEl, oldScore, newScore, 1000), 600);
-            scoreEl.style.color = color;
-        }
-        if (barEl) {
-            setTimeout(() => {
-                barEl.style.transition = "width 1s ease, background 0.5s";
-                barEl.style.width = newScore + "%";
-                barEl.style.background = color;
-            }, 600);
-        }
-        if (badgeEl) {
-            badgeEl.textContent = level;
-            badgeEl.className = `badge badge-${level}`;
-        }
-        document.getElementById("detail-sub").textContent =
-            `${riskData[selectedDivision]?.district_count || ''} districts · ${level} risk`;
+        if (scoreEl) { setTimeout(() => _countUp(scoreEl, parseFloat(scoreEl.textContent) || 0, newScore, 1000), 600); scoreEl.style.color = color; }
+        if (barEl)   { setTimeout(() => { barEl.style.width = newScore + "%"; barEl.style.background = color; }, 600); }
+        if (badgeEl) { badgeEl.textContent = level; badgeEl.className = `badge badge-${level}`; }
+        document.getElementById("detail-sub").textContent = `${riskData[selectedDivision]?.district_count || ""} districts · ${level} risk`;
     }
 }
 
@@ -980,10 +1326,8 @@ function _countUp(el, from, to, duration) {
     const start = performance.now();
     const diff  = to - from;
     function step(now) {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        // Ease out cubic
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const progress = Math.min((now - start) / duration, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3);
         el.textContent = (from + diff * eased).toFixed(1);
         if (progress < 1) requestAnimationFrame(step);
         else el.textContent = to.toFixed(1);
@@ -992,14 +1336,14 @@ function _countUp(el, from, to, duration) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// REFERRAL MAP (30 hospitals, all divisions)
+// REFERRAL MAP
 // ══════════════════════════════════════════════════════════════════
 let referralMapInit = false;
 function initReferralMap() {
     if (referralMapInit) return;
     referralMapInit = true;
-    const map = L.map('map').setView([23.8103, 90.4125], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    const map = L.map("map").setView([23.8103, 90.4125], 7);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
 
     const facilities = [
         { name: "Dhaka Medical College Hospital",  lat: 23.7261, lng: 90.3961, type: "tertiary" },
@@ -1039,23 +1383,14 @@ function initReferralMap() {
         L.circleMarker([f.lat, f.lng], {
             radius: f.type === "tertiary" ? 10 : 7,
             fillColor: colors[f.type], color: "white", weight: 2, fillOpacity: 0.9
-        }).addTo(map).bindPopup(`<strong>${f.name}</strong><br><span style="color:${colors[f.type]}">${f.type === "tertiary" ? "🏥 Tertiary Hospital" : "🏨 District Hospital"}</span>`);
+        }).addTo(map).bindPopup(`<strong>${f.name}</strong><br><span style="color:${colors[f.type]}">${f.type === "tertiary" ? "🏥 Tertiary" : "🏨 District"}</span>`);
     });
-
-    const legend = L.control({ position: "bottomright" });
-    legend.onAdd = () => {
-        const div = L.DomUtil.create("div");
-        div.style.cssText = "background:white;padding:10px;border-radius:8px;font-size:0.78rem;box-shadow:0 1px 6px rgba(0,0,0,0.15);";
-        div.innerHTML = `<div><span style="color:#c62828;">●</span> Tertiary (8)</div><div><span style="color:#1a7f5a;">●</span> District (22)</div>`;
-        return div;
-    };
-    legend.addTo(map);
 }
 
-// ── Load alerts on startup ─────────────────────────────────────────────────
+// ── Startup ────────────────────────────────────────────────────────────────
 (async () => {
     try {
-        const res = await fetch(`${API}/alerts`);
+        const res  = await fetch(`${API}/alerts`);
         const data = await res.json();
         if (data.alerts?.length) {
             document.getElementById("alert-ticker").textContent =
@@ -1065,7 +1400,6 @@ function initReferralMap() {
     } catch {}
 })();
 
-// ── Service Worker ─────────────────────────────────────────────────────────
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js")
         .then(() => console.log("✅ SW registered"))

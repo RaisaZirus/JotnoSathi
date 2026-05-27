@@ -1,13 +1,13 @@
 {
   "Barishal": {
     "division": "Barishal",
-    "score": 63.4,
-    "risk_level": "HIGH",
-    "color": "#f57c00",
+    "score": 87.9,
+    "risk_level": "CRITICAL",
+    "color": "#d32f2f",
     "top_factors": [
-      "Child anemia prevalence",
-      "Active measles outbreak (2026)",
-      "Low antenatal care coverage"
+      "High hypertension prevalence",
+      "Dietary salt / lifestyle risk",
+      "Co-morbid diabetes risk"
     ],
     "districts": [
       "Barishal",
@@ -18,26 +18,72 @@
       "Pirojpur"
     ],
     "district_count": 6,
-    "field_report_count": 0,
-    "district_scores": {
-      "Barishal": 62.8,
-      "Barguna": 64.7,
-      "Bhola": 63.1,
-      "Jhalokati": 62.3,
-      "Patuakhali": 61.0,
-      "Pirojpur": 64.9
+    "per_disease_scores": {
+      "dengue": {
+        "score": 50.1,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "High dengue test positivity",
+          "Climate-driven mosquito risk",
+          "Limited healthcare access"
+        ]
+      },
+      "measles": {
+        "score": 90.6,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Active measles outbreak (Bangladesh 2026)",
+          "Incomplete measles vaccination coverage",
+          "High under-5 mortality"
+        ]
+      },
+      "maternal": {
+        "score": 76.6,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Low antenatal care coverage",
+          "High maternal/child anemia",
+          "Low skilled birth attendance"
+        ]
+      },
+      "diabetes": {
+        "score": 42.2,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "National NCD burden",
+          "Co-morbid hypertension risk",
+          "Limited diabetes screening access"
+        ]
+      },
+      "bp": {
+        "score": 95.6,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Dietary salt / lifestyle risk",
+          "Co-morbid diabetes risk"
+        ]
+      }
     },
-    "worker_briefing": "Barishal is at HIGH risk (score: 63.4/100).\nPrimary concerns: Child anemia prevalence, Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss"
+    "district_scores": {
+      "Barishal": 90.2,
+      "Barguna": 88.6,
+      "Bhola": 90.1,
+      "Jhalokati": 86.3,
+      "Patuakhali": 89.2,
+      "Pirojpur": 92.2
+    },
+    "worker_briefing": "Barishal is at CRITICAL risk (score: 87.9/100).\nPrimary concerns: High hypertension prevalence, Dietary salt / lifestyle risk.\n\nToday's screening priorities:\n  • Screen adults for diabetes: thirst, frequent urination\n  • Screen adults for hypertension: measure BP at every visit"
   },
   "Chattogram": {
     "division": "Chattogram",
-    "score": 69.0,
-    "risk_level": "HIGH",
-    "color": "#f57c00",
+    "score": 84.4,
+    "risk_level": "CRITICAL",
+    "color": "#d32f2f",
     "top_factors": [
-      "Unmet healthcare needs",
-      "Elevated diabetes prevalence",
-      "Malaria transmission risk"
+      "High hypertension prevalence",
+      "Limited BP screening access",
+      "Dietary salt / lifestyle risk"
     ],
     "districts": [
       "Chattogram",
@@ -53,31 +99,77 @@
       "Rangamati"
     ],
     "district_count": 11,
-    "field_report_count": 0,
-    "district_scores": {
-      "Chattogram": 67.2,
-      "Bandarban": 61.9,
-      "Brahmanbaria": 71.9,
-      "Chandpur": 61.0,
-      "Cumilla": 75.7,
-      "Cox's Bazar": 75.5,
-      "Feni": 70.7,
-      "Khagrachari": 63.5,
-      "Lakshmipur": 65.4,
-      "Noakhali": 69.2,
-      "Rangamati": 68.1
+    "per_disease_scores": {
+      "dengue": {
+        "score": 66.4,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "Limited healthcare access",
+          "High dengue test positivity",
+          "Climate-driven mosquito risk"
+        ]
+      },
+      "measles": {
+        "score": 62.4,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "Active measles outbreak (Bangladesh 2026)",
+          "Limited healthcare access",
+          "Incomplete measles vaccination coverage"
+        ]
+      },
+      "maternal": {
+        "score": 38.8,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "Unmet reproductive health needs",
+          "Low antenatal care coverage",
+          "Low skilled birth attendance"
+        ]
+      },
+      "diabetes": {
+        "score": 91.4,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Elevated local diabetes prevalence",
+          "Limited diabetes screening access",
+          "National NCD burden"
+        ]
+      },
+      "bp": {
+        "score": 100.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Limited BP screening access",
+          "Dietary salt / lifestyle risk"
+        ]
+      }
     },
-    "worker_briefing": "Chattogram is at HIGH risk (score: 69.0/100).\nPrimary concerns: Unmet healthcare needs, Elevated diabetes prevalence.\n\nToday's screening priorities:\n  • Screen adults for diabetes: thirst, frequent urination, weight loss\n  • Screen for malaria: cyclical fever, chills, sweating"
+    "district_scores": {
+      "Chattogram": 87.9,
+      "Bandarban": 88.1,
+      "Brahmanbaria": 84.4,
+      "Chandpur": 83.9,
+      "Cumilla": 88.9,
+      "Cox's Bazar": 82.8,
+      "Feni": 79.4,
+      "Khagrachari": 83.4,
+      "Lakshmipur": 87.6,
+      "Noakhali": 81.0,
+      "Rangamati": 84.3
+    },
+    "worker_briefing": "Chattogram is at CRITICAL risk (score: 84.4/100).\nPrimary concerns: High hypertension prevalence, Limited BP screening access.\n\nToday's screening priorities:\n  • Screen adults for hypertension: measure BP at every visit"
   },
   "Dhaka": {
     "division": "Dhaka",
-    "score": 100.0,
+    "score": 92.9,
     "risk_level": "CRITICAL",
     "color": "#d32f2f",
     "top_factors": [
-      "High dengue burden",
-      "Active measles outbreak (2026)",
-      "Elevated diabetes prevalence"
+      "High dengue patient burden",
+      "High dengue test positivity",
+      "Climate-driven mosquito risk"
     ],
     "districts": [
       "Dhaka",
@@ -95,33 +187,79 @@
       "Tangail"
     ],
     "district_count": 13,
-    "field_report_count": 0,
-    "district_scores": {
-      "Dhaka": 92.5,
-      "Faridpur": 100.0,
-      "Gazipur": 96.8,
-      "Gopalganj": 100.0,
-      "Kishoreganj": 100.0,
-      "Madaripur": 99.6,
-      "Manikganj": 100.0,
-      "Munshiganj": 92.9,
-      "Narayanganj": 100.0,
-      "Narsingdi": 100.0,
-      "Rajbari": 100.0,
-      "Shariatpur": 100.0,
-      "Tangail": 100.0
+    "per_disease_scores": {
+      "dengue": {
+        "score": 100.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High dengue patient burden",
+          "High dengue test positivity",
+          "Climate-driven mosquito risk"
+        ]
+      },
+      "measles": {
+        "score": 75.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Active measles outbreak (Bangladesh 2026)",
+          "Limited healthcare access",
+          "High under-5 mortality"
+        ]
+      },
+      "maternal": {
+        "score": 14.9,
+        "risk_level": "LOW",
+        "top_factors": [
+          "Elevated infant mortality",
+          "Unmet reproductive health needs",
+          "Low antenatal care coverage"
+        ]
+      },
+      "diabetes": {
+        "score": 100.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Elevated local diabetes prevalence",
+          "National NCD burden",
+          "Co-morbid hypertension risk"
+        ]
+      },
+      "bp": {
+        "score": 76.8,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Co-morbid diabetes risk",
+          "Dietary salt / lifestyle risk"
+        ]
+      }
     },
-    "worker_briefing": "Dhaka is at CRITICAL risk (score: 100.0/100).\nPrimary concerns: High dengue burden, Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for dengue: fever, rash, joint pain, bleeding gums\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Screen adults for diabetes: thirst, frequent urination, weight loss\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss"
+    "district_scores": {
+      "Dhaka": 90.0,
+      "Faridpur": 92.9,
+      "Gazipur": 94.9,
+      "Gopalganj": 94.8,
+      "Kishoreganj": 91.2,
+      "Madaripur": 89.5,
+      "Manikganj": 90.1,
+      "Munshiganj": 91.1,
+      "Narayanganj": 100.0,
+      "Narsingdi": 93.5,
+      "Rajbari": 99.6,
+      "Shariatpur": 93.6,
+      "Tangail": 92.2
+    },
+    "worker_briefing": "Dhaka is at CRITICAL risk (score: 92.9/100).\nPrimary concerns: High dengue patient burden, High dengue test positivity.\n\nToday's screening priorities:\n  • Screen for dengue: fever, rash, joint pain, bleeding gums"
   },
   "Khulna": {
     "division": "Khulna",
-    "score": 44.9,
-    "risk_level": "MODERATE",
-    "color": "#fbc02d",
+    "score": 51.8,
+    "risk_level": "HIGH",
+    "color": "#f57c00",
     "top_factors": [
-      "Child anemia prevalence",
-      "Low antenatal care coverage",
-      "High hypertension rate"
+      "High hypertension prevalence",
+      "Dietary salt / lifestyle risk",
+      "Co-morbid diabetes risk"
     ],
     "districts": [
       "Khulna",
@@ -136,30 +274,76 @@
       "Satkhira"
     ],
     "district_count": 10,
-    "field_report_count": 0,
-    "district_scores": {
-      "Khulna": 52.4,
-      "Bagerhat": 42.5,
-      "Chuadanga": 40.3,
-      "Jashore": 41.0,
-      "Jhenaidah": 38.5,
-      "Kushtia": 45.5,
-      "Magura": 42.7,
-      "Meherpur": 44.7,
-      "Narail": 35.2,
-      "Satkhira": 49.1
+    "per_disease_scores": {
+      "dengue": {
+        "score": 44.8,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "High dengue test positivity",
+          "Climate-driven mosquito risk",
+          "High dengue patient burden"
+        ]
+      },
+      "measles": {
+        "score": 19.3,
+        "risk_level": "LOW",
+        "top_factors": [
+          "Incomplete measles vaccination coverage",
+          "Limited healthcare access",
+          "Active measles outbreak (Bangladesh 2026)"
+        ]
+      },
+      "maternal": {
+        "score": 28.2,
+        "risk_level": "LOW",
+        "top_factors": [
+          "High maternal/child anemia",
+          "Low antenatal care coverage",
+          "Elevated infant mortality"
+        ]
+      },
+      "diabetes": {
+        "score": 53.7,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "National NCD burden",
+          "Elevated local diabetes prevalence",
+          "Co-morbid hypertension risk"
+        ]
+      },
+      "bp": {
+        "score": 86.2,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Dietary salt / lifestyle risk",
+          "Co-morbid diabetes risk"
+        ]
+      }
     },
-    "worker_briefing": "Khulna is at MODERATE risk (score: 44.9/100).\nPrimary concerns: Child anemia prevalence, Low antenatal care coverage.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
+    "district_scores": {
+      "Khulna": 51.4,
+      "Bagerhat": 51.1,
+      "Chuadanga": 44.2,
+      "Jashore": 47.4,
+      "Jhenaidah": 51.4,
+      "Kushtia": 51.4,
+      "Magura": 58.5,
+      "Meherpur": 45.4,
+      "Narail": 57.2,
+      "Satkhira": 51.7
+    },
+    "worker_briefing": "Khulna is at HIGH risk (score: 51.8/100).\nPrimary concerns: High hypertension prevalence, Dietary salt / lifestyle risk.\n\nToday's screening priorities:\n  • Screen adults for diabetes: thirst, frequent urination\n  • Screen adults for hypertension: measure BP at every visit"
   },
   "Mymensingh": {
     "division": "Mymensingh",
-    "score": 75.9,
+    "score": 81.9,
     "risk_level": "CRITICAL",
     "color": "#d32f2f",
     "top_factors": [
-      "Recent field observations (2 reports)",
-      "Active measles outbreak (2026)",
-      "Elevated infant mortality"
+      "Active measles outbreak (Bangladesh 2026)",
+      "Incomplete measles vaccination coverage",
+      "High under-5 mortality"
     ],
     "districts": [
       "Mymensingh",
@@ -168,24 +352,70 @@
       "Sherpur"
     ],
     "district_count": 4,
-    "field_report_count": 2,
-    "district_scores": {
-      "Mymensingh": 73.3,
-      "Jamalpur": 69.3,
-      "Netrokona": 81.4,
-      "Sherpur": 77.4
+    "per_disease_scores": {
+      "dengue": {
+        "score": 39.0,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "High dengue test positivity",
+          "Climate-driven mosquito risk",
+          "Limited healthcare access"
+        ]
+      },
+      "measles": {
+        "score": 100.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Active measles outbreak (Bangladesh 2026)",
+          "Incomplete measles vaccination coverage",
+          "High under-5 mortality"
+        ]
+      },
+      "maternal": {
+        "score": 77.2,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Low antenatal care coverage",
+          "Low skilled birth attendance",
+          "Elevated infant mortality"
+        ]
+      },
+      "diabetes": {
+        "score": 42.7,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "National NCD burden",
+          "Co-morbid hypertension risk",
+          "Elevated local diabetes prevalence"
+        ]
+      },
+      "bp": {
+        "score": 62.5,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Co-morbid diabetes risk",
+          "Limited BP screening access"
+        ]
+      }
     },
-    "worker_briefing": "Mymensingh is at CRITICAL risk (score: 75.9/100).\n⚡ Score adjusted by 2 field report(s) from Shasthya Shebikas.\nPrimary concerns: Recent field observations (2 reports), Active measles outbreak (2026).\n\nToday's screening priorities:\n  • Screen for measles: fever, rash, red eyes — check vaccination status\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen for TB: persistent cough >2 weeks, night sweats, weight loss\n  • Follow up on cases reported by field workers in this area"
+    "district_scores": {
+      "Mymensingh": 81.3,
+      "Jamalpur": 80.3,
+      "Netrokona": 83.2,
+      "Sherpur": 78.6
+    },
+    "worker_briefing": "Mymensingh is at CRITICAL risk (score: 81.9/100).\nPrimary concerns: Active measles outbreak (Bangladesh 2026), Incomplete measles vaccination coverage.\n\nToday's screening priorities:\n  • Screen for measles: fever, rash, red eyes — check vaccination"
   },
   "Rajshahi": {
     "division": "Rajshahi",
-    "score": 34.9,
+    "score": 46.6,
     "risk_level": "MODERATE",
     "color": "#fbc02d",
     "top_factors": [
-      "Low antenatal care coverage",
-      "High hypertension rate",
-      "Elevated diabetes prevalence"
+      "High hypertension prevalence",
+      "Co-morbid diabetes risk",
+      "Dietary salt / lifestyle risk"
     ],
     "districts": [
       "Rajshahi",
@@ -198,28 +428,74 @@
       "Sirajganj"
     ],
     "district_count": 8,
-    "field_report_count": 0,
-    "district_scores": {
-      "Rajshahi": 30.0,
-      "Bogura": 40.0,
-      "Chapai Nawabganj": 29.7,
-      "Joypurhat": 37.0,
-      "Naogaon": 40.0,
-      "Natore": 41.3,
-      "Pabna": 32.4,
-      "Sirajganj": 33.4
+    "per_disease_scores": {
+      "dengue": {
+        "score": 35.5,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "High dengue test positivity",
+          "Climate-driven mosquito risk",
+          "High dengue patient burden"
+        ]
+      },
+      "measles": {
+        "score": 24.8,
+        "risk_level": "LOW",
+        "top_factors": [
+          "Incomplete measles vaccination coverage",
+          "Active measles outbreak (Bangladesh 2026)",
+          "High under-5 mortality"
+        ]
+      },
+      "maternal": {
+        "score": 32.5,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "Low antenatal care coverage",
+          "Low skilled birth attendance",
+          "High maternal/child anemia"
+        ]
+      },
+      "diabetes": {
+        "score": 48.5,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "National NCD burden",
+          "Elevated local diabetes prevalence",
+          "Co-morbid hypertension risk"
+        ]
+      },
+      "bp": {
+        "score": 61.8,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Co-morbid diabetes risk",
+          "Dietary salt / lifestyle risk"
+        ]
+      }
     },
-    "worker_briefing": "Rajshahi is at MODERATE risk (score: 34.9/100).\nPrimary concerns: Low antenatal care coverage, High hypertension rate.\n\nToday's screening priorities:\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Screen adults for diabetes: thirst, frequent urination, weight loss"
+    "district_scores": {
+      "Rajshahi": 49.5,
+      "Bogura": 50.6,
+      "Chapai Nawabganj": 45.0,
+      "Joypurhat": 48.7,
+      "Naogaon": 48.4,
+      "Natore": 44.3,
+      "Pabna": 50.3,
+      "Sirajganj": 51.2
+    },
+    "worker_briefing": "Rajshahi is at MODERATE risk (score: 46.6/100).\nPrimary concerns: High hypertension prevalence, Co-morbid diabetes risk.\n\nToday's screening priorities:\n  • Screen adults for diabetes: thirst, frequent urination\n  • Screen adults for hypertension: measure BP at every visit"
   },
   "Rangpur": {
     "division": "Rangpur",
-    "score": 53.2,
+    "score": 56.7,
     "risk_level": "HIGH",
     "color": "#f57c00",
     "top_factors": [
-      "Recent field observations (1 reports)",
-      "Child anemia prevalence",
-      "Elevated infant mortality"
+      "Low antenatal care coverage",
+      "Elevated infant mortality",
+      "High maternal/child anemia"
     ],
     "districts": [
       "Rangpur",
@@ -232,28 +508,74 @@
       "Thakurgaon"
     ],
     "district_count": 8,
-    "field_report_count": 1,
-    "district_scores": {
-      "Rangpur": 49.4,
-      "Dinajpur": 52.4,
-      "Gaibandha": 54.5,
-      "Kurigram": 53.9,
-      "Lalmonirhat": 51.0,
-      "Nilphamari": 51.0,
-      "Panchagarh": 47.9,
-      "Thakurgaon": 52.3
+    "per_disease_scores": {
+      "dengue": {
+        "score": 35.4,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "High dengue test positivity",
+          "Climate-driven mosquito risk",
+          "Limited healthcare access"
+        ]
+      },
+      "measles": {
+        "score": 36.9,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "Incomplete measles vaccination coverage",
+          "High under-5 mortality",
+          "Limited healthcare access"
+        ]
+      },
+      "maternal": {
+        "score": 70.8,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Low antenatal care coverage",
+          "Elevated infant mortality",
+          "High maternal/child anemia"
+        ]
+      },
+      "diabetes": {
+        "score": 34.7,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "National NCD burden",
+          "Co-morbid hypertension risk",
+          "Limited diabetes screening access"
+        ]
+      },
+      "bp": {
+        "score": 54.9,
+        "risk_level": "HIGH",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Co-morbid diabetes risk",
+          "Limited BP screening access"
+        ]
+      }
     },
-    "worker_briefing": "Rangpur is at HIGH risk (score: 53.2/100).\n⚡ Score adjusted by 1 field report(s) from Shasthya Shebikas.\nPrimary concerns: Recent field observations (1 reports), Child anemia prevalence.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue, poor growth\n  • Prioritise pregnant women: ANC visits, skilled birth attendance\n  • Follow up on cases reported by field workers in this area"
+    "district_scores": {
+      "Rangpur": 64.0,
+      "Dinajpur": 59.4,
+      "Gaibandha": 59.4,
+      "Kurigram": 58.2,
+      "Lalmonirhat": 54.5,
+      "Nilphamari": 56.7,
+      "Panchagarh": 55.4,
+      "Thakurgaon": 51.6
+    },
+    "worker_briefing": "Rangpur is at HIGH risk (score: 56.7/100).\nPrimary concerns: Low antenatal care coverage, Elevated infant mortality.\n\nToday's screening priorities:\n  • Screen children under 5 for anemia: pallor, fatigue\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
   },
   "Sylhet": {
     "division": "Sylhet",
-    "score": 70.4,
+    "score": 100.0,
     "risk_level": "CRITICAL",
     "color": "#d32f2f",
     "top_factors": [
+      "Low antenatal care coverage",
       "Elevated infant mortality",
-      "High under-5 mortality",
-      "Unmet healthcare needs"
+      "Low skilled birth attendance"
     ],
     "districts": [
       "Sylhet",
@@ -262,13 +584,59 @@
       "Sunamganj"
     ],
     "district_count": 4,
-    "field_report_count": 0,
-    "district_scores": {
-      "Sylhet": 70.6,
-      "Habiganj": 73.4,
-      "Moulvibazar": 71.5,
-      "Sunamganj": 79.5
+    "per_disease_scores": {
+      "dengue": {
+        "score": 49.0,
+        "risk_level": "MODERATE",
+        "top_factors": [
+          "High dengue test positivity",
+          "Limited healthcare access",
+          "Climate-driven mosquito risk"
+        ]
+      },
+      "measles": {
+        "score": 97.5,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Incomplete measles vaccination coverage",
+          "High under-5 mortality",
+          "Limited healthcare access"
+        ]
+      },
+      "maternal": {
+        "score": 100.0,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Low antenatal care coverage",
+          "Elevated infant mortality",
+          "Low skilled birth attendance"
+        ]
+      },
+      "diabetes": {
+        "score": 75.4,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "Elevated local diabetes prevalence",
+          "National NCD burden",
+          "Limited diabetes screening access"
+        ]
+      },
+      "bp": {
+        "score": 89.3,
+        "risk_level": "CRITICAL",
+        "top_factors": [
+          "High hypertension prevalence",
+          "Co-morbid diabetes risk",
+          "Dietary salt / lifestyle risk"
+        ]
+      }
     },
-    "worker_briefing": "Sylhet is at CRITICAL risk (score: 70.4/100).\nPrimary concerns: Elevated infant mortality, High under-5 mortality.\n\nToday's screening priorities:\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
+    "district_scores": {
+      "Sylhet": 100.0,
+      "Habiganj": 100.0,
+      "Moulvibazar": 100.0,
+      "Sunamganj": 100.0
+    },
+    "worker_briefing": "Sylhet is at CRITICAL risk (score: 100.0/100).\nPrimary concerns: Low antenatal care coverage, Elevated infant mortality.\n\nToday's screening priorities:\n  • Prioritise pregnant women: ANC visits, skilled birth attendance"
   }
 }

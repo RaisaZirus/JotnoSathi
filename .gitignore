@@ -1,4 +1,11 @@
 venv/
 __pycache__/
 *.pyc
+*.pkl
 backend/rag/db/
+risk_model/data/
+risk_model/queues/
+risk_model/trained/
+risk_model/field_reports.json
+risk_model/case_registry.json
+.env
