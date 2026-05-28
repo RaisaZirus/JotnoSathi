@@ -1,13 +1,33 @@
+import os
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_community.llms import Ollama
+from groq import Groq
+
+# Load .env if present (for local dev)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+# ── Groq client ───────────────────────────────────────────────────────────────
+_groq_client = None
+
+def get_groq_client():
+    global _groq_client
+    if _groq_client is None:
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY not set. Add it to your .env file.")
+        _groq_client = Groq(api_key=api_key)
+    return _groq_client
+
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ── Disease keyword router ────────────────────────────────────────────────────
 # IMPORTANT: Keywords here are for ROUTING only, not for limiting RAG answers.
-# Keep them specific to avoid false matches between diseases.
 DISEASE_KEYWORDS = {
     "dengue": [
-        # Dengue-specific only — no generic "rash" or "fever"
         "dengue", "ডেঙ্গু", "dengue fever",
         "aedes", "platelet", "প্লেটলেট",
         "bone pain", "হাড়ে ব্যথা",
@@ -19,7 +39,6 @@ DISEASE_KEYWORDS = {
         "severe abdominal pain vomiting fever",
     ],
     "measles": [
-        # Measles-specific — rash only counts WITH cough/runny nose/red eyes
         "measles", "হাম",
         "koplik",
         "unvaccinated", "টিকা নেই",
@@ -56,7 +75,7 @@ DISEASE_KEYWORDS = {
         "headache dizziness", "মাথাব্যথা মাথা ঘোরা",
         "chest pain", "বুকে ব্যথা",
         "shortness of breath", "শ্বাসকষ্ট",
-        "180/", "170/", "160/",  # BP readings with slash
+        "180/", "170/", "160/",
         "hypertensive", "হাইপারটেনসিভ",
     ],
 }
@@ -77,7 +96,6 @@ REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergen
 REASON:
 DENGUE WARNING SIGNS PRESENT: (Yes / No — list if Yes)
 """,
-
     "measles": """
 DISEASE DOMAIN: Measles (ACTIVE OUTBREAK — Bangladesh 2026)
 
@@ -96,7 +114,6 @@ REASON:
 ISOLATION ADVISED: (Yes / No)
 VACCINATION STATUS: (Vaccinated / Unvaccinated / Unknown)
 """,
-
     "maternal": """
 DISEASE DOMAIN: Maternal / Antenatal Health
 
@@ -113,7 +130,6 @@ REASON:
 DANGER SIGNS PRESENT: (Yes / No — list if Yes)
 GESTATIONAL WEEK: (if mentioned)
 """,
-
     "diabetes": """
 DISEASE DOMAIN: Diabetes / Blood Sugar
 
@@ -135,7 +151,6 @@ REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergen
 REASON:
 GLUCOSE READING: (if mentioned)
 """,
-
     "bp": """
 DISEASE DOMAIN: Blood Pressure / Hypertension
 
@@ -158,7 +173,6 @@ REASON:
 BP CLASSIFICATION: (Normal / Elevated / Stage 1 / Stage 2 / Crisis)
 BP READING: (if mentioned)
 """,
-
     "general": """
 DISEASE DOMAIN: General / Unspecified
 
@@ -185,55 +199,53 @@ DISEASE_REPORT_TYPE = {
 def detect_disease(text: str) -> str:
     """
     Detect disease domain from symptom text.
-    Priority order is carefully chosen to avoid false matches:
-    - maternal first (pregnancy keywords are unambiguous)
-    - bp second (numeric readings are unambiguous)
-    - diabetes third (glucose/sugar are unambiguous)
-    - dengue before measles (bone pain / eye pain / platelet are dengue-specific)
-    - measles last (catches fever+rash+cough combos not caught above)
+    Priority: maternal → bp → diabetes → dengue → measles → general
     """
     text_lower = text.lower()
-
     priority_order = ["maternal", "bp", "diabetes", "dengue", "measles"]
-
     for disease in priority_order:
-        keywords = DISEASE_KEYWORDS[disease]
-        if any(kw.lower() in text_lower for kw in keywords):
+        if any(kw.lower() in text_lower for kw in DISEASE_KEYWORDS[disease]):
             return disease
-
     return "general"
 
 
 def load_rag_chain(persist_dir: str = "backend/rag/db"):
+    """
+    Load ChromaDB + embeddings only.
+    LLM is now Groq — no Ollama needed.
+    Returns (db, None) — second value kept for API compatibility with main.py.
+    """
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     db = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
-    llm = Ollama(model="phi3:mini")
-    return db, llm
+    print(f"✅ Groq client ready — model: {GROQ_MODEL}")
+    return db, None   # None replaces Ollama llm object
 
 
-def query(question: str, db, llm, disease: str = None):
+def query(question: str, db, llm=None, disease: str = None):
     """
-    Run RAG query with disease-aware prompt.
-    If disease not provided, auto-detects from question text.
-    Returns dict with response text + detected disease + report type.
+    Run RAG query with disease-aware prompt via Groq API.
+    llm parameter kept for API compatibility but ignored — Groq is used directly.
+    Returns dict: {response, disease, report_type}
     """
     if disease is None:
         disease = detect_disease(question)
 
-    docs = db.similarity_search(question, k=3)
+    # Retrieve relevant protocol chunks from ChromaDB
+    docs    = db.similarity_search(question, k=3)
     context = "\n\n".join([doc.page_content for doc in docs])
 
     disease_fragment = DISEASE_PROMPTS.get(disease, DISEASE_PROMPTS["general"])
 
-    prompt = f"""You are Niramoy — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
+    system_prompt = """You are Niramoy — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
 You assist, you do NOT diagnose. Always recommend referral when in doubt.
-Use ONLY the provided WHO/DGHS protocol context.
+Use ONLY the provided WHO/DGHS protocol context to guide your response.
 Respond in simple, clear language a health worker can act on immediately.
 তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না। (You are assisting, not diagnosing.)
+Keep your response concise and structured — under 200 words."""
 
-Protocol Context:
+    user_prompt = f"""Protocol Context:
 {context}
 
 Patient Situation:
@@ -241,7 +253,19 @@ Patient Situation:
 
 {disease_fragment}"""
 
-    response = llm.invoke(prompt)
+    client = get_groq_client()
+    completion = client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": user_prompt},
+        ],
+        temperature=0.2,      # low temp for clinical consistency
+        max_tokens=400,
+        top_p=0.9,
+    )
+
+    response = completion.choices[0].message.content
 
     return {
         "response":    response,
@@ -251,26 +275,29 @@ Patient Situation:
 
 
 if __name__ == "__main__":
-    print("🔄 Loading RAG chain...")
-    db, llm = load_rag_chain()
+    print("🔄 Loading RAG chain + Groq client...")
+    db, _ = load_rag_chain()
     print("✅ Ready!\n")
 
     test_cases = [
-        ("জ্বর, ফুসকুড়ি, কাশি, টিকা নেই",                     "measles"),
-        ("গর্ভবতী, ৩২ সপ্তাহ, রক্তচাপ ১৬০/১১০, মাথাব্যথা",    "maternal"),
-        ("fasting glucose 8.2 mmol/L, excessive thirst",         "diabetes"),
-        ("bp 185/120, severe headache, chest pain",              "bp"),
-        ("high fever day 5, bone pain, eye pain, platelet low",  "dengue"),
-        ("fever rash cough unvaccinated child",                  "measles"),
+        ("জ্বর, ফুসকুড়ি, কাশি, টিকা নেই",                    "measles"),
+        ("গর্ভবতী, ৩২ সপ্তাহ, রক্তচাপ ১৬০/১১০, মাথাব্যথা",   "maternal"),
+        ("fasting glucose 8.2 mmol/L, excessive thirst",        "diabetes"),
+        ("bp 185/120, severe headache, chest pain",             "bp"),
+        ("high fever day 5, bone pain, eye pain, platelet low", "dengue"),
+        ("fever rash cough unvaccinated child",                 "measles"),
     ]
 
-    print("── Routing test (no LLM call) ──")
+    print("── Routing test (no API call) ──")
     all_pass = True
     for text, expected in test_cases:
         detected = detect_disease(text)
-        status = "✅" if detected == expected else "❌"
-        if detected != expected:
-            all_pass = False
+        status   = "✅" if detected == expected else "❌"
+        if detected != expected: all_pass = False
         print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:50]}")
+    print(f"\n{'✅ All routing correct!' if all_pass else '❌ Some routes failed.'}\n")
 
-    print(f"\n{'✅ All routing correct!' if all_pass else '❌ Some routes failed — check keywords.'}")
+    print("── Live Groq test ──")
+    result = query("fever day 5, bone pain, eye pain, platelet low", db)
+    print(f"Disease: {result['disease'].upper()}")
+    print(f"Response:\n{result['response']}")

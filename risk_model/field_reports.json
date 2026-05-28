@@ -461,5 +461,17 @@
     "diastolic": null,
     "id": 26,
     "report_origin": "manual"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "dengue",
+    "division": "Mymensingh",
+    "severity": "UNKNOWN",
+    "referred": false,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-28T21:51:45.791369",
+    "symptoms_en": "Fever 5 days, bone pain, eye pain, low platelets",
+    "id": 27,
+    "report_origin": "triage_auto"
   }
 ]
