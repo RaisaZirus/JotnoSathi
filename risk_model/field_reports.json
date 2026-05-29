@@ -485,5 +485,41 @@
     "symptoms_en": "high fever, red rush, pain in joints",
     "id": 28,
     "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Mymensingh",
+    "severity": "MEDIUM",
+    "referred": true,
+    "worker_id": "test",
+    "timestamp": "2026-05-29T16:48:53.625616",
+    "symptoms_en": "Fever, rash, cough, no vaccine",
+    "id": 29,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "measles",
+    "division": "Mymensingh",
+    "severity": "EMERGENCY",
+    "referred": true,
+    "worker_id": "test",
+    "timestamp": "2026-05-29T16:51:01.673679",
+    "symptoms_en": "fever rash cough unvaccinated child",
+    "id": 30,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "measles",
+    "division": "Mymensingh",
+    "severity": "HIGH",
+    "referred": true,
+    "worker_id": "anonymous",
+    "timestamp": "2026-05-29T16:56:27.033785",
+    "symptoms_en": "Fever, rash, cough, no vaccine",
+    "id": 31,
+    "report_origin": "triage_auto"
   }
 ]
