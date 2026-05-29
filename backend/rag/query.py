@@ -39,15 +39,26 @@ DISEASE_KEYWORDS = {
         "severe abdominal pain vomiting fever",
     ],
     "measles": [
+        # Bangla originals
         "measles", "হাম",
         "koplik",
-        "unvaccinated", "টিকা নেই",
-        "cough rash", "fever rash cough",
-        "runny nose rash", "সর্দি ফুসকুড়ি",
-        "red eyes rash", "চোখ লাল ফুসকুড়ি",
+        "টিকা নেই", "টিকা দেওয়া হয়নি", "টিকা পাননি",
         "জ্বর ফুসকুড়ি কাশি",
+        "সর্দি ফুসকুড়ি",
+        "চোখ লাল ফুসকুড়ি",
+        # English originals
+        "unvaccinated", "not vaccinated", "no vaccine", "no vaccination",
+        "no immunization", "no immunisation", "vaccine not given",
+        "unvaccinated child", "vaccination not done",
+        "cough rash", "fever rash cough",
+        "runny nose rash", "red eyes rash",
         "rash cough unvaccinated",
         "fever rash unvaccinated",
+        # Google Translate output variants of "টিকা নেই"
+        "no tika", "tika nei", "tika nai",
+        "vaccine absent", "no inoculation",
+        "hasn't been vaccinated", "have not been vaccinated",
+        "not been vaccinated", "never vaccinated",
     ],
     "maternal": [
         "pregnant", "গর্ভবতী", "pregnancy", "গর্ভাবস্থা",
@@ -210,29 +221,18 @@ def detect_disease(text: str) -> str:
 
 
 def load_rag_chain(persist_dir: str = "backend/rag/db"):
-    """
-    Load ChromaDB + embeddings only.
-    LLM is now Groq — no Ollama needed.
-    Returns (db, None) — second value kept for API compatibility with main.py.
-    """
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     db = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     print(f"✅ Groq client ready — model: {GROQ_MODEL}")
-    return db, None   # None replaces Ollama llm object
+    return db, None
 
 
 def query(question: str, db, llm=None, disease: str = None):
-    """
-    Run RAG query with disease-aware prompt via Groq API.
-    llm parameter kept for API compatibility but ignored — Groq is used directly.
-    Returns dict: {response, disease, report_type}
-    """
     if disease is None:
         disease = detect_disease(question)
 
-    # Retrieve relevant protocol chunks from ChromaDB
     docs    = db.similarity_search(question, k=3)
     context = "\n\n".join([doc.page_content for doc in docs])
 
@@ -260,7 +260,7 @@ Patient Situation:
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
-        temperature=0.2,      # low temp for clinical consistency
+        temperature=0.2,
         max_tokens=400,
         top_p=0.9,
     )
@@ -279,25 +279,28 @@ if __name__ == "__main__":
     db, _ = load_rag_chain()
     print("✅ Ready!\n")
 
+    # ── Routing self-test (no API call needed) ────────────────────────────────
     test_cases = [
+        # Bangla originals
         ("জ্বর, ফুসকুড়ি, কাশি, টিকা নেই",                    "measles"),
         ("গর্ভবতী, ৩২ সপ্তাহ, রক্তচাপ ১৬০/১১০, মাথাব্যথা",   "maternal"),
+        # Google Translate outputs of Bangla measles symptoms
+        ("fever, rash, cough, no vaccine",                      "measles"),
+        ("fever rash cough vaccination not done",               "measles"),
+        ("fever rash cough not vaccinated",                     "measles"),
+        ("fever rash cough hasn't been vaccinated",             "measles"),
+        # Other diseases
         ("fasting glucose 8.2 mmol/L, excessive thirst",        "diabetes"),
         ("bp 185/120, severe headache, chest pain",             "bp"),
         ("high fever day 5, bone pain, eye pain, platelet low", "dengue"),
         ("fever rash cough unvaccinated child",                 "measles"),
     ]
 
-    print("── Routing test (no API call) ──")
+    print("── Routing test ──")
     all_pass = True
     for text, expected in test_cases:
         detected = detect_disease(text)
         status   = "✅" if detected == expected else "❌"
         if detected != expected: all_pass = False
-        print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:50]}")
+        print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:55]}")
     print(f"\n{'✅ All routing correct!' if all_pass else '❌ Some routes failed.'}\n")
-
-    print("── Live Groq test ──")
-    result = query("fever day 5, bone pain, eye pain, platelet low", db)
-    print(f"Disease: {result['disease'].upper()}")
-    print(f"Response:\n{result['response']}")

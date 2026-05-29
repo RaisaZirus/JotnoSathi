@@ -117,18 +117,54 @@ def save_field_reports(reports):
         json.dump(reports, f, indent=2)
 
 # ── LLM response parsers ──────────────────────────────────────────────────────
+# def extract_risk_level(response_text: str) -> str:
+#     for line in response_text.splitlines():
+#         if "RISK LEVEL" in line.upper():
+#             for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
+#                 if level in line.upper():
+#                     return level
+#     return "UNKNOWN"
 def extract_risk_level(response_text: str) -> str:
+    # Bangla risk level mappings (Groq responds in Bangla when language=bn)
+    BANGLA_MAP = {
+        "জরুরি":      "EMERGENCY",
+        "জরুরী":      "EMERGENCY",
+        "অত্যন্ত উচ্চ": "EMERGENCY",
+        "উচ্চ":        "HIGH",
+        "মাঝারি":      "MEDIUM",
+        "মধ্যম":       "MEDIUM",
+        "কম":          "LOW",
+        "নিম্ন":        "LOW",
+    }
     for line in response_text.splitlines():
-        if "RISK LEVEL" in line.upper():
+        line_upper = line.upper()
+        # English check — original logic
+        if "RISK LEVEL" in line_upper or "ঝুঁকি" in line or "ঝুকি" in line:
             for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
-                if level in line.upper():
+                if level in line_upper:
                     return level
+            # Bangla value on same line
+            for bangla, english in BANGLA_MAP.items():
+                if bangla in line:
+                    return english
+    # Second pass — scan whole response for Bangla risk words
+    for bangla, english in BANGLA_MAP.items():
+        if bangla in response_text:
+            return english
     return "UNKNOWN"
+
+
+# def extract_referral(response_text: str) -> bool:
+#     for line in response_text.splitlines():
+#         if "REFERRAL NEEDED" in line.upper():
+#             return "YES" in line.upper()
+#     return False
 
 def extract_referral(response_text: str) -> bool:
     for line in response_text.splitlines():
-        if "REFERRAL NEEDED" in line.upper():
-            return "YES" in line.upper()
+        if "REFERRAL NEEDED" in line.upper() or "রেফারেল" in line or "রেফার" in line:
+            if "YES" in line.upper() or "হ্যাঁ" in line or "জরুরি" in line:
+                return True
     return False
 
 # ════════════════════════════════════════════════════════════════════════════

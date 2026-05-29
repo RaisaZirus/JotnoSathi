@@ -1,90 +1,86 @@
-/* EthicalDisclaimer.jsx
- * Drop into: src/components/EthicalDisclaimer.jsx
- * Usage: imported and rendered in App.jsx (see instructions below)
- */
-
 export default function EthicalDisclaimer({ onAcknowledge }) {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.72)' }}>
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: 'rgba(15,23,42,0.72)' }}
+    >
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
 
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden
-                      animate-[slideDown_0.3s_ease]">
-
-        {/* ── Green header bar ── */}
-        <div className="bg-forest-600 px-6 py-4 flex items-center gap-3">
-          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center
-                          text-white text-lg shrink-0">🏥</div>
-          <div>
-            <div className="text-white font-semibold text-sm leading-tight">Niramoy</div>
-            <div className="text-forest-200 text-[11px] leading-tight">AI Clinical Decision Support</div>
+        {/* HEADER */}
+        <div className="flex items-center gap-3 bg-gradient-to-r from-[#0F766E] to-[#115E59] px-6 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-lg text-white">
+            🏥
           </div>
-          {/* Infinity AI BuildFest badge */}
-          <div className="ml-auto text-[10px] bg-white/15 text-white px-2.5 py-1
-                          rounded-full font-medium shrink-0">
+
+          <div>
+            <div className="text-sm font-semibold text-white">
+              Niramoy
+            </div>
+            <div className="text-[11px] text-white/70">
+              AI Clinical Decision Support
+            </div>
+          </div>
+
+          <div className="ml-auto rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-medium text-white">
             BuildFest 2026
           </div>
         </div>
 
-        {/* ── Body ── */}
-        <div className="px-6 pt-5 pb-4">
+        {/* BODY */}
+        <div className="px-6 py-5">
 
-          <p className="text-sm font-semibold text-forest-700 mb-4">
+          <p className="mb-4 text-sm font-semibold text-[#0F766E]">
             ⚕️ Important — Please read before use
           </p>
 
-          <div className="space-y-3 mb-5">
+          <div className="mb-5 space-y-3">
 
             <DisclaimerRow icon="🤝" title="Assists, does not replace">
-              Niramoy supports your clinical judgment. Final decisions always
-              rest with you and qualified medical personnel.
+              Supports clinical judgment. Final decisions remain with healthcare professionals.
             </DisclaimerRow>
 
             <DisclaimerRow icon="📋" title="Protocol-grounded">
-              All advice is based on WHO and DGHS guidelines. This tool does
-              not diagnose — it recommends actions based on established protocols.
+              Based on WHO + DGHS guidelines. No diagnosis is provided — only recommendations.
             </DisclaimerRow>
 
             <DisclaimerRow icon="🚨" title="Emergency cases">
-              If a patient is in immediate danger, call{' '}
-              <a href="tel:999" className="font-bold text-red-600 underline">999</a>{' '}
-              or refer to the nearest facility without delay. Do not wait for
-              AI output.
+              Call{" "}
+              <a href="tel:999" className="font-bold text-red-500 underline">
+                999
+              </a>{" "}
+              immediately for emergencies. Do not wait for AI output.
             </DisclaimerRow>
 
             <DisclaimerRow icon="🔒" title="No personal data stored">
-              Field reports contain no patient names or identifiers. Data is
-              used only for district-level risk modelling.
+              Reports are anonymized for district-level risk analysis only.
             </DisclaimerRow>
 
             <DisclaimerRow icon="🇧🇩" title="For Shasthya Shebikas only">
-              Designed for trained community health workers under DGHS
-              guidelines. Not for self-diagnosis by patients.
+              Intended for trained community health workers under DGHS guidelines.
             </DisclaimerRow>
 
           </div>
 
-          {/* Bangla reminder */}
-          <div className="bg-forest-50 border-l-4 border-forest-500 rounded-r-xl
-                          px-4 py-3 mb-5">
-            <p className="text-sm text-forest-800 font-medium leading-relaxed">
+          {/* BANGLA NOTE */}
+          <div className="mb-5 border-l-4 border-[#0F766E] bg-[#F0FDFA] px-4 py-3">
+            <p className="text-sm font-medium text-[#0F766E]">
               তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না।
             </p>
-            <p className="text-xs text-forest-500 mt-0.5">
+            <p className="mt-0.5 text-xs text-[#64748B]">
               You are assisting, not diagnosing.
             </p>
           </div>
 
-          {/* Acknowledge button */}
+          {/* BUTTON */}
           <button
             onClick={onAcknowledge}
-            className="btn-primary"
+            className="w-full rounded-xl bg-gradient-to-r from-[#0F766E] to-[#115E59] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:opacity-95"
           >
-            ✅ I understand — Continue to Niramoy
+            ✅ I understand — Continue
           </button>
 
-          <p className="text-center text-[11px] text-gray-300 mt-3">
-            This notice appears once per session
+          <p className="mt-3 text-center text-[11px] text-[#94A3B8]">
+            This appears once per session
           </p>
         </div>
       </div>
@@ -92,13 +88,15 @@ export default function EthicalDisclaimer({ onAcknowledge }) {
   )
 }
 
-/* ── Helper row ── */
 function DisclaimerRow({ icon, title, children }) {
   return (
-    <div className="flex gap-3 items-start">
-      <span className="text-base shrink-0 mt-0.5">{icon}</span>
-      <div className="text-xs text-gray-600 leading-relaxed">
-        <span className="font-semibold text-gray-800">{title}. </span>
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 text-base">{icon}</span>
+
+      <div className="text-xs leading-relaxed text-[#64748B]">
+        <span className="font-semibold text-[#0F172A]">
+          {title}.{" "}
+        </span>
         {children}
       </div>
     </div>
