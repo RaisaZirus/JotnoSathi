@@ -7,7 +7,13 @@ from deep_translator import GoogleTranslator
 import json, os, subprocess, sys
 from datetime import datetime
 
+from backend.auth.models import init_db
+from backend.auth.routes import router as auth_router
+
 app = FastAPI(title="Niramoy API")
+
+init_db()
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,

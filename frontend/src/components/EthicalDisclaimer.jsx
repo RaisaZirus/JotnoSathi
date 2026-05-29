@@ -14,7 +14,7 @@ export default function EthicalDisclaimer({ onAcknowledge }) {
 
           <div>
             <div className="text-sm font-semibold text-white">
-              Niramoy
+              JotnoSathi
             </div>
             <div className="text-[11px] text-white/70">
               AI Clinical Decision Support

@@ -569,5 +569,53 @@
     "symptoms_en": "high fever day 5, bone pain, eye pain, platelet low",
     "id": 35,
     "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Khulna",
+    "severity": "LOW",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T02:43:09.586585",
+    "symptoms_en": "toothache",
+    "id": 36,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Rajshahi",
+    "severity": "MEDIUM",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T03:28:35.125820",
+    "symptoms_en": "stomach ache",
+    "id": 37,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Rajshahi",
+    "severity": "LOW",
+    "referred": false,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T03:29:06.588513",
+    "symptoms_en": "headache",
+    "id": 38,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Rajshahi",
+    "severity": "MEDIUM",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T03:29:18.231425",
+    "symptoms_en": "headache",
+    "id": 39,
+    "report_origin": "triage_auto"
   }
 ]

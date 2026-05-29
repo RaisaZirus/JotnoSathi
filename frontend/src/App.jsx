@@ -1,18 +1,14 @@
-
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom'
 import { API } from './constants'
+import Login    from './Login'
+import Landing  from './Landing'
 import TriageTab          from './components/TriageTab'
 import ReportsTab         from './components/ReportsTab'
 import LogTab             from './components/LogTab'
 import RiskMapTab         from './components/RiskMapTab'
 import ReferralTab        from './components/ReferralTab'
 import EthicalDisclaimer  from './components/EthicalDisclaimer'
-
-
-/* ─────────────────────────────────────────────────────────────────
-   Design tokens — medical blue + warm white + soft orange accent
-   ───────────────────────────────────────────────────────────────── */
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
@@ -396,7 +392,7 @@ function AmbulanceIcon({ style }) {
 }
 
 /* ── Sidebar ────────────────────────────────────────────────────── */
-function Sidebar({ collapsed, setCollapsed, isOnline }) {
+function Sidebar({ collapsed, setCollapsed, isOnline, onLogout }) {
   return (
     <aside
       className="sidebar"
@@ -409,7 +405,7 @@ function Sidebar({ collapsed, setCollapsed, isOnline }) {
         </div>
         {!collapsed && (
           <div className="logo-text-wrap">
-            <div className="logo-name">Niramoy</div>
+            <div className="logo-name">JotnoSathi</div>
             <div className="logo-sub">AI Health Assistant</div>
           </div>
         )}
@@ -445,6 +441,19 @@ function Sidebar({ collapsed, setCollapsed, isOnline }) {
           </div>
         )}
         <button
+          onClick={onLogout}
+          className="collapse-btn"
+          style={{ justifyContent: collapsed ? 'center' : undefined, color: 'var(--red-text)', marginBottom: 2 }}
+          title="Logout"
+        >
+          <svg style={{ width: 15, height: 15, flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          {!collapsed && <span>Logout</span>}
+        </button>
+        <button
           onClick={() => setCollapsed(c => !c)}
           className="collapse-btn"
           style={{ justifyContent: collapsed ? 'center' : undefined }}
@@ -466,7 +475,7 @@ function Topbar({ isOnline, alerts }) {
     <>
       <div className="topbar">
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="topbar-title">{current?.label ?? 'Niramoy'}</div>
+          <div className="topbar-title">{current?.label ?? 'JotnoSathi'}</div>
           {alerts.length > 0 && (
             <div className="topbar-alert">
               🔴 {alerts[0].message}
@@ -521,7 +530,7 @@ function MobileHeader({ isOnline, alerts }) {
       <div className="mobile-logo">
         <HeartPlusIcon style={{ width: 14, height: 14 }} />
       </div>
-      <span className="mobile-title">{current?.label ?? 'Niramoy'}</span>
+      <span className="mobile-title">{current?.label ?? 'JotnoSathi'}</span>
       {alerts.length > 0 && (
         <span style={{ fontSize: 11, color: 'var(--red-text)', fontWeight: 600 }}>🔴</span>
       )}
@@ -567,7 +576,7 @@ function Footer() {
           <div className="footer-logo">
             <HeartPlusIcon style={{ width: 11, height: 11 }} />
           </div>
-          <span className="footer-name">Niramoy</span>
+          <span className="footer-name">JotnoSathi</span>
           <span className="footer-sep">·</span>
           <span className="footer-desc">AI Health Assistant · Bangladesh</span>
         </div>
@@ -599,7 +608,7 @@ function OfflineBanner({ isOnline }) {
 }
 
 /* ── Main layout ────────────────────────────────────────────────── */
-function AppLayout({ isOnline, alerts, sessionLog, addToLog }) {
+function AppLayout({ isOnline, alerts, sessionLog, addToLog, onLogout }) {
   const [collapsed, setCollapsed] = useState(false)
   const location   = useLocation()
   const isRiskMap  = location.pathname === '/riskmap'
@@ -607,7 +616,7 @@ function AppLayout({ isOnline, alerts, sessionLog, addToLog }) {
 
   return (
     <div className="app-shell">
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} isOnline={isOnline} />
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} isOnline={isOnline} onLogout={onLogout} />
 
       <div className="content-wrap">
         <OfflineBanner isOnline={isOnline} />
@@ -641,18 +650,30 @@ function AppLayout({ isOnline, alerts, sessionLog, addToLog }) {
 
 /* ── Root ───────────────────────────────────────────────────────── */
 export default function App() {
+  const [screen, setScreen] = useState(
+    localStorage.getItem('token') ? 'app' : 'landing'
+  )
   const [isOnline, setIsOnline]     = useState(navigator.onLine)
   const [alerts, setAlerts]         = useState([])
   const [sessionLog, setSessionLog] = useState(() =>
-    JSON.parse(localStorage.getItem('niramoy_log') || '[]')
+    JSON.parse(localStorage.getItem('jotnosathi_log') || '[]')
   )
   const [disclaimerAck, setDisclaimerAck] = useState(
-    () => !!sessionStorage.getItem('niramoy_disclaimer_ack')
+    () => !!sessionStorage.getItem('jotnosathi_disclaimer_ack')
   )
 
   function acknowledgeDisclaimer() {
-    sessionStorage.setItem('niramoy_disclaimer_ack', '1')
+    sessionStorage.setItem('jotnosathi_disclaimer_ack', '1')
     setDisclaimerAck(true)
+  }
+
+  function handleLogin() { setScreen('app') }
+
+  function handleLogout() {
+    localStorage.removeItem('token')
+    sessionStorage.removeItem('jotnosathi_disclaimer_ack')
+    setDisclaimerAck(false)
+    setScreen('landing')
   }
 
   useEffect(() => {
@@ -667,23 +688,41 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (screen !== 'app') return
     fetch(`${API}/alerts`)
       .then(r => r.json())
       .then(d => { if (d.alerts?.length) setAlerts(d.alerts) })
       .catch(() => {})
-  }, [])
+  }, [screen])
 
   function addToLog(entry) {
     setSessionLog(prev => {
       const next = [entry, ...prev].slice(0, 50)
-      localStorage.setItem('niramoy_log', JSON.stringify(next))
+      localStorage.setItem('jotnosathi_log', JSON.stringify(next))
       return next
     })
   }
 
+  if (screen === 'landing') {
+    return (
+      <Landing
+        onGetStarted={() => setScreen('login')}
+        onLogin={() => setScreen('login')}
+      />
+    )
+  }
+
+  if (screen === 'login') {
+    return (
+      <Login
+        onLogin={handleLogin}
+        onBack={() => setScreen('landing')}
+      />
+    )
+  }
+
   return (
     <>
-      {/* Inject styles */}
       <style>{CSS}</style>
 
       {!disclaimerAck && (
@@ -696,6 +735,7 @@ export default function App() {
           alerts={alerts}
           sessionLog={sessionLog}
           addToLog={addToLog}
+          onLogout={handleLogout}
         />
       </BrowserRouter>
     </>
