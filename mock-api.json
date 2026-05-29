@@ -1,0 +1,13 @@
+{
+  "alerts": [
+    { "id": 1, "division": "Mymensingh", "disease": "Measles", "level": "CRITICAL", "message": "Measles outbreak detected" },
+    { "id": 2, "division": "Rajshahi", "disease": "Dengue", "level": "HIGH", "message": "Dengue cases rising" }
+  ],
+  "case-registry": [
+    { "disease": "Diabetes", "count": 42 },
+    { "disease": "Blood Pressure", "count": 31 },
+    { "disease": "Maternal", "count": 17 }
+  ],
+  "field-reports": [],
+  "queue-status": { "dengue": 2, "measles": 3 }
+}
