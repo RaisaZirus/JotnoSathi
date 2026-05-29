@@ -1,365 +1,1155 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { API, DISEASE_FIELDS, LEVEL_COLORS } from '../constants'
+
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react'
+
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  Brain,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardPlus,
+  Loader2,
+  MapPinned,
+  ShieldAlert,
+  Sparkles,
+  TrendingUp,
+  Waves,
+  XCircle,
+} from 'lucide-react'
+
+import {
+  motion,
+  AnimatePresence,
+} from 'framer-motion'
+
+import {
+  API,
+  DISEASE_FIELDS,
+  LEVEL_COLORS,
+} from '../constants'
+
 import Badge from './Badge'
 import { parseFieldValue } from './DiseaseFields'
 
-function countUp(setter, from, to, duration = 800) {
-  const start = performance.now()
-  const diff  = to - from
-  function step(now) {
-    const progress = Math.min((now - start) / duration, 1)
-    const eased    = 1 - Math.pow(1 - progress, 3)
-    setter(parseFloat((from + diff * eased).toFixed(1)))
-    if (progress < 1) requestAnimationFrame(step)
-    else setter(parseFloat(to.toFixed(1)))
-  }
-  requestAnimationFrame(step)
+/* ────────────────────────────────────────────────────────────── */
+/* Constants */
+/* ────────────────────────────────────────────────────────────── */
+
+const CARD_CLASS =
+  'rounded-2xl border border-slate-200 bg-white'
+
+const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
 }
 
-// ─── Division row ────────────────────────────────────────────────
-function DivisionRow({ name, data, selected, onClick }) {
-  const [barW, setBarW]         = useState(0)
-  const [displayScore, setDisplayScore] = useState(data.score)
-  const color = LEVEL_COLORS[data.risk_level] || '#888'
+const slideUp = {
+  initial: {
+    opacity: 0,
+    y: 10,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+  },
+}
 
-  useEffect(() => { setTimeout(() => setBarW(data.score), 100) }, [data.score])
-  useEffect(() => { setDisplayScore(data.score) }, [data.score])
+const DISEASE_OPTIONS = [
+  {
+    value: 'dengue',
+    label: 'Dengue',
+    icon: '🦟',
+  },
+  {
+    value: 'measles',
+    label: 'Measles',
+    icon: '🔴',
+  },
+  {
+    value: 'maternal',
+    label: 'Maternal / ANC',
+    icon: '🤰',
+  },
+  {
+    value: 'diabetes',
+    label: 'Diabetes',
+    icon: '🩸',
+  },
+  {
+    value: 'bp',
+    label: 'Hypertension',
+    icon: '💊',
+  },
+]
 
-  return (
-    <div
-      className={`relative bg-white rounded-xl cursor-pointer transition-all duration-200 overflow-hidden
-        border-2 shadow-sm hover:shadow-md hover:translate-x-1
-        ${selected ? 'border-forest-500 shadow-hover' : 'border-transparent'}`}
-      onClick={onClick}
-    >
-      {/* Left accent bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ background: color }} />
-      <div className="pl-4 pr-3.5 py-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-semibold text-sm text-gray-800">{name}</span>
-          <div className="flex items-center gap-2">
-            <Badge level={data.risk_level} />
-            <span className="font-mono text-sm font-semibold" style={{ color }}>{displayScore}</span>
-          </div>
-        </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-1.5">
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${barW}%`, background: color }}
-          />
-        </div>
-        {data.top_factors?.[0] && (
-          <p className="text-xs text-gray-400 truncate">{data.top_factors[0]}</p>
-        )}
-      </div>
-    </div>
+/* ────────────────────────────────────────────────────────────── */
+/* Helpers */
+/* ────────────────────────────────────────────────────────────── */
+
+function getRiskConfig(level) {
+  switch ((level || '').toLowerCase()) {
+    case 'critical':
+      return {
+        glow: 'shadow-red-100',
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        text: 'text-red-700',
+      }
+
+    case 'high':
+      return {
+        glow: 'shadow-orange-100',
+        bg: 'bg-orange-50',
+        border: 'border-orange-200',
+        text: 'text-orange-700',
+      }
+
+    default:
+      return {
+        glow: 'shadow-amber-100',
+        bg: 'bg-amber-50',
+        border: 'border-amber-200',
+        text: 'text-amber-700',
+      }
+  }
+}
+
+function clampScore(score) {
+  return Math.max(
+    0,
+    Math.min(Number(score || 0), 100)
   )
 }
 
-// ─── Detail panel ────────────────────────────────────────────────
-function DetailPanel({ division, data, onClose }) {
-  const [briefing, setBriefing]     = useState('Loading briefing...')
-  const [barW, setBarW]             = useState(0)
-  const [frDisease, setFrDisease]   = useState('')
-  const [frOutcome, setFrOutcome]   = useState('monitoring')
-  const [frFields, setFrFields]     = useState({})
-  const [frStatus, setFrStatus]     = useState(null)
-  const color = LEVEL_COLORS[data.risk_level] || '#888'
+/* ────────────────────────────────────────────────────────────── */
+/* Stat Card */
+/* ────────────────────────────────────────────────────────────── */
+
+function StatCard({
+  label,
+  value,
+  icon,
+  color,
+}) {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      className={`${CARD_CLASS} relative overflow-hidden px-5 py-4 shadow-sm`}
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            {label}
+          </p>
+
+          <div
+            className="mt-3 text-3xl font-black tracking-tight"
+            style={{ color }}
+          >
+            {value}
+          </div>
+        </div>
+
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl"
+          style={{
+            backgroundColor: `${color}14`,
+            color,
+          }}
+        >
+          {icon}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────── */
+/* Division Row */
+/* ────────────────────────────────────────────────────────────── */
+
+function DivisionRow({
+  name,
+  data,
+  selected,
+  onClick,
+}) {
+  const [barWidth, setBarWidth] =
+    useState(0)
+
+  const score = clampScore(data?.score)
+
+  const color =
+    LEVEL_COLORS[
+      data?.risk_level
+    ] || '#64748b'
+
+  const risk = getRiskConfig(
+    data?.risk_level
+  )
 
   useEffect(() => {
-    setBarW(0)
-    setBriefing('Loading briefing...')
-    setTimeout(() => setBarW(data.score), 80)
-    fetch(`${API}/risk/${division}`)
-      .then(r => r.json())
-      .then(d => setBriefing(d.worker_briefing || ''))
-      .catch(() => setBriefing((data.top_factors || []).join('\n• ')))
-  }, [division])
+    const timer = setTimeout(() => {
+      setBarWidth(score)
+    }, 120)
 
-  const frDef = DISEASE_FIELDS[frDisease]
+    return () => clearTimeout(timer)
+  }, [score])
+
+  return (
+    <motion.button
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.995 }}
+      onClick={onClick}
+      aria-expanded={selected}
+      aria-label={`View ${name} division details`}
+      className={`group relative w-full overflow-hidden rounded-2xl border bg-white text-left transition-all duration-200 ${
+        selected
+          ? `border-slate-300 shadow-lg ${risk.glow}`
+          : 'border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md'
+      }`}
+    >
+      <div
+        className="absolute left-0 top-0 h-full w-1.5"
+        style={{
+          background: color,
+        }}
+      />
+
+      <div className="px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <MapPinned
+                size={15}
+                className="text-slate-400"
+              />
+
+              <h3 className="truncate text-sm font-bold text-slate-800">
+                {name} Division
+              </h3>
+            </div>
+
+            <p className="mt-1 truncate text-xs text-slate-400">
+              {data?.top_factors?.[0] ||
+                'Live outbreak surveillance'}
+            </p>
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <Badge
+              level={data?.risk_level}
+            />
+
+            <div
+              className="text-lg font-black tabular-nums"
+              style={{ color }}
+            >
+              {score}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Risk Score
+            </span>
+
+            <span className="text-[11px] font-semibold text-slate-500">
+              /100
+            </span>
+          </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{
+                width: `${barWidth}%`,
+              }}
+              transition={{
+                duration: 0.7,
+                ease: 'easeOut',
+              }}
+              className="h-full rounded-full"
+              style={{
+                background: color,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-[11px] font-medium text-slate-400">
+            Tap for live briefing
+          </span>
+
+          <ChevronDown
+            size={16}
+            className={`transition-transform duration-200 ${
+              selected
+                ? 'rotate-180 text-slate-700'
+                : 'text-slate-300'
+            }`}
+          />
+        </div>
+      </div>
+    </motion.button>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────── */
+/* Quick Report Form */
+/* ────────────────────────────────────────────────────────────── */
+
+function QuickReportForm({
+  division,
+}) {
+  const [disease, setDisease] =
+    useState('')
+
+  const [outcome, setOutcome] =
+    useState('monitoring')
+
+  const [fields, setFields] =
+    useState({})
+
+  const [status, setStatus] =
+    useState(null)
+
+  const [submitting, setSubmitting] =
+    useState(false)
+
+  const def =
+    DISEASE_FIELDS[disease]
 
   async function submitFieldReport() {
-    if (!frDisease) { alert('Please select a suspected disease.'); return }
-    setFrStatus({ msg: '⏳ Submitting...', ok: null })
+    if (!disease) {
+      setStatus({
+        ok: false,
+        msg: 'Please select a suspected disease.',
+      })
+
+      return
+    }
+
+    setSubmitting(true)
+    setStatus(null)
+
     const payload = {
       division,
       symptoms: 'Field observation',
-      outcome: frOutcome,
-      disease_suspected: frDisease,
-      worker_id: 'shebika_' + Math.random().toString(36).substr(2, 6),
+      outcome,
+      disease_suspected: disease,
+      worker_id:
+        'shebika_' +
+        Math.random()
+          .toString(36)
+          .slice(2, 8),
     }
-    if (frDef) {
-      frDef.fields.slice(0, 2).forEach(f => {
-        const val = parseFieldValue(f, frFields[f.id])
-        if (val !== null) payload[f.id] = val
-      })
+
+    if (def) {
+      def.fields
+        .slice(0, 2)
+        .forEach(f => {
+          const val =
+            parseFieldValue(
+              f,
+              fields[f.id]
+            )
+
+          if (val !== null) {
+            payload[f.id] = val
+          }
+        })
     }
+
     try {
-      const res  = await fetch(`${API}/field-report`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const d = await res.json()
-      const delta = d.score_delta || 0
-      const dStr  = delta > 0 ? `+${delta}` : `${delta}`
-      let msg
-      if (d.report_type === 'outbreak') {
-        msg = d.retrain_triggered
-          ? `✅ Model retrained! ${division}: ${d.score_before} → ${d.score_after} (${dStr})`
-          : `✅ Submitted. Queue: ${d.queue_size}/5`
-      } else {
-        msg = `✅ Case logged. Registry: ${d.case_count} ${frDisease} cases in ${division}`
+      const res = await fetch(
+        `${API}/field-report`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          body: JSON.stringify(
+            payload
+          ),
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error(
+          'Failed to submit report'
+        )
       }
-      setFrStatus({ ok: true, msg })
+
+      const d = await res.json()
+
+      let msg =
+        'Registry updated successfully.'
+
+      if (
+        d.report_type ===
+        'outbreak'
+      ) {
+        msg = d.retrain_triggered
+          ? `AI retraining triggered for ${division}.`
+          : `Queue updated: ${d.queue_size}/5`
+      }
+
+      setStatus({
+        ok: true,
+        msg,
+      })
+
+      setFields({})
     } catch {
-      setFrStatus({ ok: false, msg: '⚠️ Could not submit. Check connection.' })
+      setStatus({
+        ok: false,
+        msg: 'Could not submit report.',
+      })
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <div className="card animate-slideDown border-t-4" style={{ borderTopColor: color }}>
-      <div className="flex justify-between items-start mb-3">
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+          <ClipboardPlus size={18} />
+        </div>
+
         <div>
-          <h3 className="text-base font-semibold text-gray-800">{division} Division</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{data.district_count} districts · {data.risk_level} risk</p>
-        </div>
-        <div className="text-right">
-          <div className="font-mono text-3xl font-medium leading-none" style={{ color }}>{data.score}</div>
-          <div className="text-xs text-gray-400">/100</div>
-          <Badge level={data.risk_level} className="mt-1.5" />
+          <h4 className="text-sm font-bold text-slate-800">
+            Quick Field Observation
+          </h4>
+
+          <p className="text-xs text-slate-400">
+            Submit real-time community
+            health data
+          </p>
         </div>
       </div>
 
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-        <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${barW}%`, background: color }} />
-      </div>
+      <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <select
+            value={disease}
+            onChange={e => {
+              setDisease(
+                e.target.value
+              )
 
-      {/* Per-disease mini scores */}
-      {data.per_disease_scores && Object.keys(data.per_disease_scores).length > 0 && (
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {Object.entries(data.per_disease_scores).map(([d, pd]) => {
-            const dc = DISEASE_FIELDS[d]
-            return (
-              <div key={d} className="bg-gray-50 rounded-xl p-2.5">
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-xs font-semibold text-gray-600">{dc?.icon} {d.toUpperCase()}</span>
-                  <span className="text-xs font-mono text-gray-400">{pd.score}</span>
-                </div>
-                <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pd.score}%`, background: dc?.color || '#888' }} />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+              setFields({})
+            }}
+            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="">
+              Select disease
+            </option>
 
-      {/* Factor tags */}
-      {data.top_factors?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {data.top_factors.map(f => (
-            <span key={f} className="bg-slate-100 text-slate-600 rounded-full px-2.5 py-1 text-xs font-medium">⚠️ {f}</span>
-          ))}
-        </div>
-      )}
-
-      {/* Briefing */}
-      <div className="bg-green-50 border-l-3 border-green-600 p-3 rounded-r-xl text-xs text-gray-700 leading-relaxed whitespace-pre-wrap mb-4"
-        style={{ borderLeftWidth: 3, borderLeftColor: '#558b2f' }}>
-        {briefing}
-      </div>
-
-      {/* Quick field report */}
-      <div className="border-t border-gray-100 pt-4">
-        <p className="text-xs font-semibold text-gray-600 mb-2">📋 Quick field observation</p>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <select className="form-input text-xs" value={frDisease} onChange={e => { setFrDisease(e.target.value); setFrFields({}) }}>
-            <option value="">Suspected disease...</option>
-            <option value="dengue">🦟 Dengue</option>
-            <option value="measles">🔴 Measles</option>
-            <option value="maternal">🤰 Maternal</option>
-            <option value="diabetes">🩸 Diabetes</option>
-            <option value="bp">💊 Blood Pressure</option>
+            {DISEASE_OPTIONS.map(
+              d => (
+                <option
+                  key={d.value}
+                  value={d.value}
+                >
+                  {d.icon} {d.label}
+                </option>
+              )
+            )}
           </select>
-          <select className="form-input text-xs" value={frOutcome} onChange={e => setFrOutcome(e.target.value)}>
-            <option value="monitoring">Monitoring</option>
-            <option value="treated">Treated</option>
-            <option value="referred">Referred</option>
+
+          <select
+            value={outcome}
+            onChange={e =>
+              setOutcome(
+                e.target.value
+              )
+            }
+            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="monitoring">
+              Monitoring
+            </option>
+
+            <option value="treated">
+              Treated
+            </option>
+
+            <option value="referred">
+              Referred
+            </option>
           </select>
         </div>
 
-        {frDef && (
-          <div className="space-y-1.5 mb-2">
-            <p className="text-xs font-medium" style={{ color: frDef.report_type === 'outbreak' ? '#e65100' : '#1565c0' }}>
-              {frDef.icon} {frDef.label}
-            </p>
-            {frDef.fields.slice(0, 2).map(f => (
-              <div key={f.id}>
-                {f.type === 'select' ? (
-                  <select className="form-input text-xs"
-                    value={frFields[f.id] ?? ''}
-                    onChange={e => setFrFields(prev => ({ ...prev, [f.id]: e.target.value }))}>
-                    {f.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </select>
-                ) : (
-                  <input type="number" className="form-input text-xs"
-                    placeholder={`${f.label}: ${f.placeholder || ''}`}
-                    value={frFields[f.id] ?? ''}
-                    min={f.min} max={f.max}
-                    onChange={e => setFrFields(prev => ({ ...prev, [f.id]: e.target.value }))} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {def && (
+            <motion.div
+              initial={{
+                opacity: 0,
+                height: 0,
+              }}
+              animate={{
+                opacity: 1,
+                height: 'auto',
+              }}
+              exit={{
+                opacity: 0,
+                height: 0,
+              }}
+              className="space-y-3 overflow-hidden"
+            >
+              <div
+                className={`rounded-xl border px-4 py-3 text-xs font-semibold ${
+                  def.report_type ===
+                  'outbreak'
+                    ? 'border-orange-200 bg-orange-50 text-orange-700'
+                    : 'border-blue-200 bg-blue-50 text-blue-700'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles size={13} />
 
-        <button className="btn-outline text-xs py-2" onClick={submitFieldReport}>
-          📤 Submit → feeds model
+                  <span>
+                    {def.icon}{' '}
+                    {def.label}
+                  </span>
+                </div>
+              </div>
+
+              {def.fields
+                .slice(0, 2)
+                .map(f => (
+                  <div key={f.id}>
+                    {f.type ===
+                    'select' ? (
+                      <select
+                        value={
+                          fields[
+                            f.id
+                          ] ?? ''
+                        }
+                        onChange={e =>
+                          setFields(
+                            prev => ({
+                              ...prev,
+                              [f.id]:
+                                e.target
+                                  .value,
+                            })
+                          )
+                        }
+                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      >
+                        {f.options.map(
+                          ([v, l]) => (
+                            <option
+                              key={v}
+                              value={v}
+                            >
+                              {l}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    ) : (
+                      <input
+                        type="number"
+                        min={f.min}
+                        max={f.max}
+                        placeholder={
+                          f.placeholder ||
+                          f.label
+                        }
+                        value={
+                          fields[
+                            f.id
+                          ] ?? ''
+                        }
+                        onChange={e =>
+                          setFields(
+                            prev => ({
+                              ...prev,
+                              [f.id]:
+                                e.target
+                                  .value,
+                            })
+                          )
+                        }
+                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      />
+                    )}
+                  </div>
+                ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          onClick={submitFieldReport}
+          disabled={submitting}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-bold text-white shadow-lg shadow-blue-100 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? (
+            <>
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+
+              Submitting...
+            </>
+          ) : (
+            <>
+              Submit Observation
+
+              <ArrowRight size={15} />
+            </>
+          )}
         </button>
 
-        {frStatus && (
-          <div className={`mt-2 p-2 rounded-lg text-xs font-medium animate-fadeIn
-            ${frStatus.ok === true ? 'bg-green-50 text-green-800' : frStatus.ok === false ? 'bg-red-50 text-red-800' : 'bg-gray-50 text-gray-600'}`}>
-            {frStatus.msg}
-          </div>
-        )}
+        <AnimatePresence>
+          {status && (
+            <motion.div
+              {...fadeIn}
+              exit={{
+                opacity: 0,
+              }}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
+                status.ok
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border-red-200 bg-red-50 text-red-700'
+              }`}
+            >
+              {status.ok ? (
+                <CheckCircle2 size={15} />
+              ) : (
+                <XCircle size={15} />
+              )}
+
+              {status.msg}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
 }
 
-// ─── Main RiskMapTab ─────────────────────────────────────────────
-export default function RiskMapTab({ isActive }) {
-  const [riskData, setRiskData]             = useState({})
-  const [summary, setSummary]               = useState({ critical: [], high: [], moderate: [] })
-  const [lastUpdated, setLastUpdated]       = useState(null)
-  const [selectedDiv, setSelectedDiv]       = useState(null)
-  const [loadError, setLoadError]           = useState(false)
-  const pollRef = useRef(null)
+/* ────────────────────────────────────────────────────────────── */
+/* Detail Panel */
+/* ────────────────────────────────────────────────────────────── */
 
-  const loadRiskMap = useCallback(async (silent = false) => {
-    try {
-      const [riskRes, alertRes] = await Promise.all([
-        fetch(`${API}/risk/all`),
-        fetch(`${API}/alerts`),
-      ])
-      const riskJson  = await riskRes.json()
-      await alertRes.json()  // alerts handled in App.jsx
-      setRiskData(riskJson.divisions)
-      setSummary(riskJson.summary)
-      setLastUpdated(new Date().toLocaleTimeString())
-      setLoadError(false)
-    } catch {
-      if (!silent) setLoadError(true)
-    }
-  }, [])
+function DetailPanel({
+  division,
+  data,
+}) {
+  const [briefing, setBriefing] =
+    useState('Loading briefing...')
+
+  const score = clampScore(
+    data?.score
+  )
+
+  const color =
+    LEVEL_COLORS[
+      data?.risk_level
+    ] || '#64748b'
+
+  const risk = getRiskConfig(
+    data?.risk_level
+  )
 
   useEffect(() => {
-    if (!isActive) { clearInterval(pollRef.current); return }
-    loadRiskMap()
-    pollRef.current = setInterval(() => loadRiskMap(true), 30000)
-    return () => clearInterval(pollRef.current)
-  }, [isActive, loadRiskMap])
+    const controller =
+      new AbortController()
 
-  const sorted = Object.entries(riskData).sort((a, b) => b[1].score - a[1].score)
+    async function loadBriefing() {
+      try {
+        setBriefing(
+          'Loading briefing...'
+        )
+
+        const res = await fetch(
+          `${API}/risk/${division}`,
+          {
+            signal:
+              controller.signal,
+          }
+        )
+
+        if (!res.ok) {
+          throw new Error()
+        }
+
+        const d =
+          await res.json()
+
+        setBriefing(
+          d.worker_briefing ||
+            'No briefing available.'
+        )
+      } catch {
+        setBriefing(
+          (data?.top_factors || [])
+            .map(f => `• ${f}`)
+            .join('\n') ||
+            'Unable to load briefing.'
+        )
+      }
+    }
+
+    loadBriefing()
+
+    return () =>
+      controller.abort()
+  }, [division, data?.top_factors])
 
   return (
-    <div className="page-body space-y-4 animate-fadeIn">
-      <div>
-        <h2 className="page-title">Risk Map</h2>
-        <p className="page-subtitle">Live division-level outbreak risk scores</p>
-      </div>
-      {/* Summary stats */}
-      <div className="grid grid-cols-4 gap-2">
-        {[
-          { label: 'Critical', val: summary.critical?.length ?? '–', color: '#c62828' },
-          { label: 'High',     val: summary.high?.length ?? '–',     color: '#e65100' },
-          { label: 'Moderate', val: summary.moderate?.length ?? '–', color: '#f57f17' },
-          { label: 'Datasets', val: 13,                               color: '#1a7f5a' },
-        ].map(s => (
-          <div key={s.label} className="bg-white rounded-2xl shadow-card p-3 text-center transition-transform hover:-translate-y-0.5">
-            <div className="font-mono text-2xl font-semibold leading-none" style={{ color: s.color }}>{s.val}</div>
-            <div className="text-[10px] text-gray-400 uppercase tracking-wide mt-1">{s.label}</div>
+    <motion.div
+      {...slideUp}
+      className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-100"
+    >
+      <div
+        className={`border-b px-6 py-5 ${risk.bg} ${risk.border}`}
+      >
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
+                style={{
+                  background: color,
+                }}
+              >
+                <ShieldAlert size={20} />
+              </div>
+
+              <div>
+                <h3 className="text-xl font-black tracking-tight text-slate-900">
+                  {division} Division
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {data?.district_count ||
+                    0}{' '}
+                  districts monitored ·{' '}
+                  {data?.risk_level} risk
+                </p>
+              </div>
+            </div>
           </div>
-        ))}
+
+          <div className="flex items-center gap-4">
+            <Badge
+              level={data?.risk_level}
+            />
+
+            <div className="text-right">
+              <div
+                className="text-4xl font-black leading-none"
+                style={{ color }}
+              >
+                {score}
+              </div>
+
+              <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Risk Score
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <div className="h-3 overflow-hidden rounded-full bg-white/60">
+            <motion.div
+              initial={{
+                width: 0,
+              }}
+              animate={{
+                width: `${score}%`,
+              }}
+              transition={{
+                duration: 0.8,
+              }}
+              className="h-full rounded-full"
+              style={{
+                background: color,
+              }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Feedback loop card */}
-      <div className="card">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-2 h-2 bg-forest-500 rounded-full animate-pulse" />
-          <span className="text-xs font-semibold text-gray-700">Closed feedback loop — active</span>
+      <div className="space-y-6 px-6 py-6">
+        <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
+          <div className="flex items-center gap-2 border-b border-emerald-100 px-5 py-4">
+            <Brain
+              size={16}
+              className="text-emerald-600"
+            />
+
+            <h4 className="text-sm font-bold text-emerald-700">
+              AI Worker Briefing
+            </h4>
+          </div>
+
+          <div className="px-5 py-5">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+              {briefing}
+            </p>
+          </div>
+        </div>
+
+        <QuickReportForm
+          division={division}
+        />
+      </div>
+    </motion.div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────── */
+/* Main Component */
+/* ────────────────────────────────────────────────────────────── */
+
+export default function RiskMapTab({
+  isActive,
+}) {
+  const [riskData, setRiskData] =
+    useState({})
+
+  const [summary, setSummary] =
+    useState({
+      critical: [],
+      high: [],
+      moderate: [],
+    })
+
+  const [lastUpdated, setLastUpdated] =
+    useState(null)
+
+  const [selectedDiv, setSelectedDiv] =
+    useState(null)
+
+  const [loadError, setLoadError] =
+    useState(false)
+
+  const [loading, setLoading] =
+    useState(true)
+
+  const pollRef = useRef(null)
+
+  const loadRiskMap =
+    useCallback(
+      async (
+        silent = false
+      ) => {
+        try {
+          if (!silent) {
+            setLoading(true)
+          }
+
+          const [
+            riskRes,
+            alertRes,
+          ] = await Promise.all([
+            fetch(
+              `${API}/risk/all`
+            ),
+            fetch(
+              `${API}/alerts`
+            ),
+          ])
+
+          if (
+            !riskRes.ok ||
+            !alertRes.ok
+          ) {
+            throw new Error()
+          }
+
+          const riskJson =
+            await riskRes.json()
+
+          await alertRes.json()
+
+          setRiskData(
+            riskJson.divisions ||
+              {}
+          )
+
+          setSummary(
+            riskJson.summary || {
+              critical: [],
+              high: [],
+              moderate: [],
+            }
+          )
+
+          setLastUpdated(
+            new Date().toLocaleTimeString()
+          )
+
+          setLoadError(false)
+        } catch {
+          if (!silent) {
+            setLoadError(true)
+          }
+        } finally {
+          setLoading(false)
+        }
+      },
+      []
+    )
+
+  useEffect(() => {
+    if (!isActive) {
+      if (pollRef.current) {
+        clearInterval(
+          pollRef.current
+        )
+      }
+
+      return
+    }
+
+    loadRiskMap()
+
+    pollRef.current =
+      setInterval(() => {
+        loadRiskMap(true)
+      }, 30000)
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(
+          pollRef.current
+        )
+      }
+    }
+  }, [isActive, loadRiskMap])
+
+  const sorted = useMemo(() => {
+    return Object.entries(
+      riskData
+    ).sort(
+      (a, b) =>
+        clampScore(b[1]?.score) -
+        clampScore(a[1]?.score)
+    )
+  }, [riskData])
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 animate-fadeIn">
+      <div className="flex flex-col gap-4">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-blue-700">
+          <Waves size={13} />
+          Live Surveillance Network
+        </div>
+
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+              Bangladesh Risk Map
+            </h1>
+
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+              Real-time
+              division-level
+              outbreak
+              intelligence powered
+              by live field
+              reports,
+              retraining
+              feedback loops,
+              public health
+              datasets, and
+              AI-assisted
+              surveillance.
+            </p>
+          </div>
+
           {lastUpdated && (
-            <span className="ml-auto text-xs text-gray-300">{lastUpdated}</span>
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                  Last Updated
+                </p>
+
+                <p className="text-sm font-semibold text-slate-700">
+                  {lastUpdated}
+                </p>
+              </div>
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-1 flex-wrap">
-          {[
-            { label: 'Risk Engine', sub: 'WHO/DHS data' },
-            { label: 'Worker Briefing', sub: 'District priorities' },
-            { label: 'Field Observation', sub: 'Shebika reports' },
-            { label: 'Score Update', sub: 'Live retrain' },
-          ].map((step, i, arr) => (
-            <div key={i} className="flex items-center gap-1">
-              <div className="bg-forest-50 border border-forest-300 text-forest-700 rounded-lg px-2.5 py-1.5 text-center">
-                <div className="text-xs font-semibold leading-none">{step.label}</div>
-                <div className="text-[10px] text-forest-500 mt-0.5">{step.sub}</div>
-              </div>
-              {i < arr.length - 1 && <span className="text-gray-300 text-xs">→</span>}
-            </div>
-          ))}
-        </div>
-        <p className="text-xs text-gray-400 mt-2">
-          13 real datasets · Field reports trigger live model retrain · Scores update in real time
-        </p>
       </div>
 
-      {/* Division detail panel */}
-      {selectedDiv && riskData[selectedDiv] && (
-        <DetailPanel
-          division={selectedDiv}
-          data={riskData[selectedDiv]}
-          onClose={() => setSelectedDiv(null)}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Critical"
+          value={
+            summary.critical
+              ?.length ?? '–'
+          }
+          color="#dc2626"
+          icon={
+            <ShieldAlert size={18} />
+          }
         />
-      )}
 
-      {/* Division list */}
-      <div className="card">
-        <div className="flex justify-between items-center mb-3">
-          <span className="font-semibold text-sm text-gray-800">Division Risk Scores</span>
-          <span className="text-xs text-gray-400">Tap for briefing</span>
-        </div>
-        {loadError && (
-          <div className="text-center py-8 text-red-600 text-xs">
-            ⚠️ Could not load risk data.<br />Is the backend running on port 8000?
-          </div>
-        )}
-        {!sorted.length && !loadError && (
-          <div className="text-center py-8 text-gray-400 text-xs">Loading risk data...</div>
-        )}
-        <div className="space-y-2">
-          {sorted.map(([name, data]) => (
-            <DivisionRow
-              key={name}
-              name={name}
-              data={data}
-              selected={selectedDiv === name}
-              onClick={() => setSelectedDiv(prev => prev === name ? null : name)}
-            />
-          ))}
-        </div>
+        <StatCard
+          label="High Risk"
+          value={
+            summary.high
+              ?.length ?? '–'
+          }
+          color="#ea580c"
+          icon={
+            <TrendingUp size={18} />
+          }
+        />
+
+        <StatCard
+          label="Moderate"
+          value={
+            summary.moderate
+              ?.length ?? '–'
+          }
+          color="#ca8a04"
+          icon={
+            <Activity size={18} />
+          }
+        />
+
+        <StatCard
+          label="Datasets"
+          value="13"
+          color="#0891b2"
+          icon={<Brain size={18} />}
+        />
       </div>
 
-      {/* Model coverage */}
-      <div className="card">
-        <p className="text-xs font-semibold text-gray-600 mb-2">Model coverage</p>
-        <div className="flex flex-wrap gap-1.5">
-          {['Dengue','Measles 2026','Maternal health','Diabetes','Hypertension','Child mortality','Anemia','Nutrition','NCD','Climate risk','ANC coverage'].map(t => (
-            <span key={t} className="bg-forest-50 text-forest-700 rounded-full px-2.5 py-1 text-xs font-medium">{t}</span>
-          ))}
+      <AnimatePresence>
+        {selectedDiv &&
+          riskData[
+            selectedDiv
+          ] && (
+            <DetailPanel
+              division={
+                selectedDiv
+              }
+              data={
+                riskData[
+                  selectedDiv
+                ]
+              }
+            />
+          )}
+      </AnimatePresence>
+
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+          <div>
+            <h3 className="text-sm font-black text-slate-800">
+              Division Risk
+              Scores
+            </h3>
+
+            <p className="mt-1 text-xs text-slate-400">
+              Tap a division to
+              view disease
+              analytics and AI
+              briefing
+            </p>
+          </div>
         </div>
-        <p className="text-xs text-gray-400 mt-2">WHO/HDX · DHS Bangladesh · Kaggle · ScienceDirect</p>
+
+        <div className="px-6 py-6">
+          {loadError && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-6 text-center">
+              <div className="text-sm font-bold text-red-700">
+                Could not load
+                risk data
+              </div>
+
+              <p className="mt-1 text-xs text-red-500">
+                Is the backend
+                running on port
+                8000?
+              </p>
+            </div>
+          )}
+
+          {loading &&
+            !loadError && (
+              <div className="space-y-4">
+                {[1, 2, 3].map(
+                  item => (
+                    <div
+                      key={item}
+                      className="h-28 animate-pulse rounded-2xl bg-slate-100"
+                    />
+                  )
+                )}
+              </div>
+            )}
+
+          {!loading &&
+            !sorted.length &&
+            !loadError && (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400">
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+
+                No live data
+                available
+              </div>
+            )}
+
+          <div className="space-y-4">
+            {sorted.map(
+              ([name, data]) => (
+                <DivisionRow
+                  key={name}
+                  name={name}
+                  data={data}
+                  selected={
+                    selectedDiv ===
+                    name
+                  }
+                  onClick={() =>
+                    setSelectedDiv(
+                      prev =>
+                        prev ===
+                        name
+                          ? null
+                          : name
+                    )
+                  }
+                />
+              )
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
+
