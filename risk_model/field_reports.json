@@ -521,5 +521,29 @@
     "symptoms_en": "Fever, rash, cough, no vaccine",
     "id": 31,
     "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "dengue",
+    "division": "Khulna",
+    "severity": "HIGH",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-29T21:38:49.010453",
+    "symptoms_en": "high fever, rash, platelete less",
+    "id": 32,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "measles",
+    "division": "Khulna",
+    "severity": "HIGH",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-29T21:39:41.001475",
+    "symptoms_en": "Fever, rash, cough, no vaccine",
+    "id": 33,
+    "report_origin": "triage_auto"
   }
 ]
