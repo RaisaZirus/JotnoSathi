@@ -545,5 +545,29 @@
     "symptoms_en": "Fever, rash, cough, no vaccine",
     "id": 33,
     "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "general",
+    "division": "Chattogram",
+    "severity": "HIGH",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T01:15:03.645036",
+    "symptoms_en": "hish fever, red rashes, platelate less",
+    "id": 34,
+    "report_origin": "triage_auto"
+  },
+  {
+    "source": "triage_auto",
+    "disease": "dengue",
+    "division": "Chattogram",
+    "severity": "HIGH",
+    "referred": true,
+    "worker_id": "shebika_field",
+    "timestamp": "2026-05-30T01:16:06.244987",
+    "symptoms_en": "high fever day 5, bone pain, eye pain, platelet low",
+    "id": 35,
+    "report_origin": "triage_auto"
   }
 ]
