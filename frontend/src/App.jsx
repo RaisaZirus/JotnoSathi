@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom'
 import { API } from './constants'
-import TriageTab   from './components/TriageTab'
-import ReportsTab  from './components/ReportsTab'
-import LogTab      from './components/LogTab'
-import RiskMapTab  from './components/RiskMapTab'
-import ReferralTab from './components/ReferralTab'
+import TriageTab          from './components/TriageTab'
+import ReportsTab         from './components/ReportsTab'
+import LogTab             from './components/LogTab'
+import RiskMapTab         from './components/RiskMapTab'
+import ReferralTab        from './components/ReferralTab'
+import EthicalDisclaimer  from './components/EthicalDisclaimer'
 
 const NAV_ITEMS = [
   { to: '/triage',   label: 'Triage',    icon: TriageIcon },
@@ -59,14 +60,6 @@ function ReferralIcon({ className }) {
     </svg>
   )
 }
-function PlusIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-  )
-}
 function ChevronIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,8 +70,6 @@ function ChevronIcon({ className }) {
 
 /* ── Sidebar ────────────────────────────────────────────────────── */
 function Sidebar({ collapsed, setCollapsed, isOnline }) {
-  const location = useLocation()
-
   return (
     <aside className={`
       hidden md:flex flex-col bg-white border-r border-gray-100
@@ -119,7 +110,6 @@ function Sidebar({ collapsed, setCollapsed, isOnline }) {
                 {isActive && !collapsed && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full bg-forest-500" />
                 )}
-                {/* Tooltip when collapsed */}
                 {collapsed && (
                   <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg
                     opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-lg">
@@ -135,7 +125,6 @@ function Sidebar({ collapsed, setCollapsed, isOnline }) {
 
       {/* Bottom section */}
       <div className="border-t border-gray-100 p-3 space-y-2">
-        {/* Online pill */}
         {!collapsed && (
           <div className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium
             ${isOnline ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
@@ -143,8 +132,6 @@ function Sidebar({ collapsed, setCollapsed, isOnline }) {
             {isOnline ? 'Connected' : 'Offline'}
           </div>
         )}
-
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(c => !c)}
           className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs
@@ -166,7 +153,6 @@ function Topbar({ isOnline, alerts }) {
 
   return (
     <div className="h-16 bg-white border-b border-gray-100 flex items-center px-6 gap-4 shrink-0">
-      {/* Page title */}
       <div className="flex-1 min-w-0">
         <h2 className="text-base font-semibold text-gray-900 truncate">{current?.label ?? 'Niramoy'}</h2>
         {alerts.length > 0 && (
@@ -176,15 +162,11 @@ function Topbar({ isOnline, alerts }) {
           </div>
         )}
       </div>
-
-      {/* Status chip */}
       <div className={`hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full
         ${isOnline ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-orange-500'}`} />
         {isOnline ? 'Live' : 'Offline'}
       </div>
-
-      {/* Emergency badge */}
       <a href="tel:999"
         className="hidden sm:flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors">
         🚑 999
@@ -238,7 +220,7 @@ function MobileHeader({ isOnline, alerts }) {
   )
 }
 
-/* ── Footer (inside content area) ───────────────────────────────── */
+/* ── Footer ─────────────────────────────────────────────────────── */
 function Footer() {
   return (
     <footer className="mt-auto border-t border-gray-100 px-6 py-4 bg-white">
@@ -279,45 +261,33 @@ function OfflineBanner({ isOnline }) {
 /* ── Main layout ────────────────────────────────────────────────── */
 function AppLayout({ isOnline, alerts, sessionLog, addToLog }) {
   const [collapsed, setCollapsed] = useState(false)
-  const location = useLocation()
+  const location   = useLocation()
   const isRiskMap  = location.pathname === '/riskmap'
   const isReferral = location.pathname === '/referral'
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-
-      {/* Left sidebar — desktop only */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} isOnline={isOnline} />
-
-      {/* Right column */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <OfflineBanner isOnline={isOnline} />
-
-        {/* Mobile header */}
         <MobileHeader isOnline={isOnline} alerts={alerts} />
-
-        {/* Desktop topbar */}
         <div className="hidden md:block">
           <Topbar isOnline={isOnline} alerts={alerts} />
         </div>
-
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <div className="max-w-2xl mx-auto">
             <Routes>
-              <Route path="/" element={<Navigate to="/triage" replace />} />
-              <Route path="/triage"   element={<TriageTab  addToLog={addToLog} />} />
-              <Route path="/reports"  element={<ReportsTab />} />
-              <Route path="/log"      element={<LogTab sessionLog={sessionLog} />} />
-              <Route path="/riskmap"  element={<RiskMapTab  isActive={isRiskMap} />} />
-              <Route path="/referral" element={<ReferralTab isActive={isReferral} />} />
+              <Route path="/"          element={<Navigate to="/triage" replace />} />
+              <Route path="/triage"    element={<TriageTab  addToLog={addToLog} />} />
+              <Route path="/reports"   element={<ReportsTab />} />
+              <Route path="/log"       element={<LogTab sessionLog={sessionLog} />} />
+              <Route path="/riskmap"   element={<RiskMapTab  isActive={isRiskMap} />} />
+              <Route path="/referral"  element={<ReferralTab isActive={isReferral} />} />
             </Routes>
           </div>
           <Footer />
         </main>
       </div>
-
-      {/* Bottom nav — mobile only */}
       <BottomNav />
     </div>
   )
@@ -331,12 +301,26 @@ export default function App() {
     JSON.parse(localStorage.getItem('niramoy_log') || '[]')
   )
 
+  // ── Disclaimer state — persists for the browser session only ──────────────
+  const [disclaimerAck, setDisclaimerAck] = useState(
+    () => !!sessionStorage.getItem('niramoy_disclaimer_ack')
+  )
+
+  function acknowledgeDisclaimer() {
+    sessionStorage.setItem('niramoy_disclaimer_ack', '1')
+    setDisclaimerAck(true)
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     const on  = () => setIsOnline(true)
     const off = () => setIsOnline(false)
     window.addEventListener('online',  on)
     window.addEventListener('offline', off)
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off) }
+    return () => {
+      window.removeEventListener('online',  on)
+      window.removeEventListener('offline', off)
+    }
   }, [])
 
   useEffect(() => {
@@ -355,13 +339,20 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <AppLayout
-        isOnline={isOnline}
-        alerts={alerts}
-        sessionLog={sessionLog}
-        addToLog={addToLog}
-      />
-    </BrowserRouter>
+    <>
+      {/* Ethical AI disclaimer — shown on every new session until acknowledged */}
+      {!disclaimerAck && (
+        <EthicalDisclaimer onAcknowledge={acknowledgeDisclaimer} />
+      )}
+
+      <BrowserRouter>
+        <AppLayout
+          isOnline={isOnline}
+          alerts={alerts}
+          sessionLog={sessionLog}
+          addToLog={addToLog}
+        />
+      </BrowserRouter>
+    </>
   )
 }
