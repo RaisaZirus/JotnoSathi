@@ -1,4 +1,3 @@
-
 import {
   useState,
   useEffect,
@@ -244,9 +243,7 @@ function DivisionRow({
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <Badge
-              level={data?.risk_level}
-            />
+            <Badge level={data?.risk_level} />
 
             <div
               className="text-lg font-black tabular-nums"
@@ -398,8 +395,7 @@ function QuickReportForm({
         'Registry updated successfully.'
 
       if (
-        d.report_type ===
-        'outbreak'
+        d.report_type === 'outbreak'
       ) {
         msg = d.retrain_triggered
           ? `AI retraining triggered for ${division}.`
@@ -435,8 +431,7 @@ function QuickReportForm({
           </h4>
 
           <p className="text-xs text-slate-400">
-            Submit real-time community
-            health data
+            Submit real-time community health data
           </p>
         </div>
       </div>
@@ -446,152 +441,93 @@ function QuickReportForm({
           <select
             value={disease}
             onChange={e => {
-              setDisease(
-                e.target.value
-              )
-
+              setDisease(e.target.value)
               setFields({})
             }}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           >
-            <option value="">
-              Select disease
-            </option>
+            <option value="">Select disease</option>
 
-            {DISEASE_OPTIONS.map(
-              d => (
-                <option
-                  key={d.value}
-                  value={d.value}
-                >
-                  {d.icon} {d.label}
-                </option>
-              )
-            )}
+            {DISEASE_OPTIONS.map(d => (
+              <option key={d.value} value={d.value}>
+                {d.icon} {d.label}
+              </option>
+            ))}
           </select>
 
           <select
             value={outcome}
             onChange={e =>
-              setOutcome(
-                e.target.value
-              )
+              setOutcome(e.target.value)
             }
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           >
-            <option value="monitoring">
-              Monitoring
-            </option>
-
-            <option value="treated">
-              Treated
-            </option>
-
-            <option value="referred">
-              Referred
-            </option>
+            <option value="monitoring">Monitoring</option>
+            <option value="treated">Treated</option>
+            <option value="referred">Referred</option>
           </select>
         </div>
 
         <AnimatePresence>
           {def && (
             <motion.div
-              initial={{
-                opacity: 0,
-                height: 0,
-              }}
-              animate={{
-                opacity: 1,
-                height: 'auto',
-              }}
-              exit={{
-                opacity: 0,
-                height: 0,
-              }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
               className="space-y-3 overflow-hidden"
             >
               <div
                 className={`rounded-xl border px-4 py-3 text-xs font-semibold ${
-                  def.report_type ===
-                  'outbreak'
+                  def.report_type === 'outbreak'
                     ? 'border-orange-200 bg-orange-50 text-orange-700'
                     : 'border-blue-200 bg-blue-50 text-blue-700'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <Sparkles size={13} />
-
                   <span>
-                    {def.icon}{' '}
-                    {def.label}
+                    {def.icon} {def.label}
                   </span>
                 </div>
               </div>
 
-              {def.fields
-                .slice(0, 2)
-                .map(f => (
-                  <div key={f.id}>
-                    {f.type ===
-                    'select' ? (
-                      <select
-                        value={
-                          fields[
-                            f.id
-                          ] ?? ''
-                        }
-                        onChange={e =>
-                          setFields(
-                            prev => ({
-                              ...prev,
-                              [f.id]:
-                                e.target
-                                  .value,
-                            })
-                          )
-                        }
-                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-                      >
-                        {f.options.map(
-                          ([v, l]) => (
-                            <option
-                              key={v}
-                              value={v}
-                            >
-                              {l}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    ) : (
-                      <input
-                        type="number"
-                        min={f.min}
-                        max={f.max}
-                        placeholder={
-                          f.placeholder ||
-                          f.label
-                        }
-                        value={
-                          fields[
-                            f.id
-                          ] ?? ''
-                        }
-                        onChange={e =>
-                          setFields(
-                            prev => ({
-                              ...prev,
-                              [f.id]:
-                                e.target
-                                  .value,
-                            })
-                          )
-                        }
-                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-                      />
-                    )}
-                  </div>
-                ))}
+              {def.fields.slice(0, 2).map(f => (
+                <div key={f.id}>
+                  {f.type === 'select' ? (
+                    <select
+                      value={fields[f.id] ?? ''}
+                      onChange={e =>
+                        setFields(prev => ({
+                          ...prev,
+                          [f.id]: e.target.value,
+                        }))
+                      }
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                    >
+                      {f.options.map(([v, l]) => (
+                        <option key={v} value={v}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="number"
+                      min={f.min}
+                      max={f.max}
+                      placeholder={f.placeholder || f.label}
+                      value={fields[f.id] ?? ''}
+                      onChange={e =>
+                        setFields(prev => ({
+                          ...prev,
+                          [f.id]: e.target.value,
+                        }))
+                      }
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                    />
+                  )}
+                </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
@@ -603,17 +539,12 @@ function QuickReportForm({
         >
           {submitting ? (
             <>
-              <Loader2
-                size={15}
-                className="animate-spin"
-              />
-
+              <Loader2 size={15} className="animate-spin" />
               Submitting...
             </>
           ) : (
             <>
               Submit Observation
-
               <ArrowRight size={15} />
             </>
           )}
@@ -623,9 +554,7 @@ function QuickReportForm({
           {status && (
             <motion.div
               {...fadeIn}
-              exit={{
-                opacity: 0,
-              }}
+              exit={{ opacity: 0 }}
               className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
                 status.ok
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
@@ -658,62 +587,44 @@ function DetailPanel({
   const [briefing, setBriefing] =
     useState('Loading briefing...')
 
-  const score = clampScore(
-    data?.score
-  )
+  const score = clampScore(data?.score)
 
   const color =
-    LEVEL_COLORS[
-      data?.risk_level
-    ] || '#64748b'
+    LEVEL_COLORS[data?.risk_level] || '#64748b'
 
-  const risk = getRiskConfig(
-    data?.risk_level
-  )
+  const risk = getRiskConfig(data?.risk_level)
 
   useEffect(() => {
-    const controller =
-      new AbortController()
+    const controller = new AbortController()
 
     async function loadBriefing() {
       try {
-        setBriefing(
-          'Loading briefing...'
-        )
+        setBriefing('Loading briefing...')
 
         const res = await fetch(
           `${API}/risk/${division}`,
-          {
-            signal:
-              controller.signal,
-          }
+          { signal: controller.signal }
         )
 
-        if (!res.ok) {
-          throw new Error()
-        }
+        if (!res.ok) throw new Error()
 
-        const d =
-          await res.json()
+        const d = await res.json()
 
         setBriefing(
-          d.worker_briefing ||
-            'No briefing available.'
+          d.worker_briefing || 'No briefing available.'
         )
       } catch {
         setBriefing(
           (data?.top_factors || [])
             .map(f => `• ${f}`)
-            .join('\n') ||
-            'Unable to load briefing.'
+            .join('\n') || 'Unable to load briefing.'
         )
       }
     }
 
     loadBriefing()
 
-    return () =>
-      controller.abort()
+    return () => controller.abort()
   }, [division, data?.top_factors])
 
   return (
@@ -721,17 +632,13 @@ function DetailPanel({
       {...slideUp}
       className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-100"
     >
-      <div
-        className={`border-b px-6 py-5 ${risk.bg} ${risk.border}`}
-      >
+      <div className={`border-b px-6 py-5 ${risk.bg} ${risk.border}`}>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md"
-                style={{
-                  background: color,
-                }}
+                style={{ background: color }}
               >
                 <ShieldAlert size={20} />
               </div>
@@ -742,9 +649,7 @@ function DetailPanel({
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  {data?.district_count ||
-                    0}{' '}
-                  districts monitored ·{' '}
+                  {data?.district_count || 0} districts monitored ·{' '}
                   {data?.risk_level} risk
                 </p>
               </div>
@@ -752,15 +657,10 @@ function DetailPanel({
           </div>
 
           <div className="flex items-center gap-4">
-            <Badge
-              level={data?.risk_level}
-            />
+            <Badge level={data?.risk_level} />
 
             <div className="text-right">
-              <div
-                className="text-4xl font-black leading-none"
-                style={{ color }}
-              >
+              <div className="text-4xl font-black leading-none" style={{ color }}>
                 {score}
               </div>
 
@@ -774,19 +674,11 @@ function DetailPanel({
         <div className="mt-5">
           <div className="h-3 overflow-hidden rounded-full bg-white/60">
             <motion.div
-              initial={{
-                width: 0,
-              }}
-              animate={{
-                width: `${score}%`,
-              }}
-              transition={{
-                duration: 0.8,
-              }}
+              initial={{ width: 0 }}
+              animate={{ width: `${score}%` }}
+              transition={{ duration: 0.8 }}
               className="h-full rounded-full"
-              style={{
-                background: color,
-              }}
+              style={{ background: color }}
             />
           </div>
         </div>
@@ -795,10 +687,7 @@ function DetailPanel({
       <div className="space-y-6 px-6 py-6">
         <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
           <div className="flex items-center gap-2 border-b border-emerald-100 px-5 py-4">
-            <Brain
-              size={16}
-              className="text-emerald-600"
-            />
+            <Brain size={16} className="text-emerald-600" />
 
             <h4 className="text-sm font-bold text-emerald-700">
               AI Worker Briefing
@@ -812,9 +701,7 @@ function DetailPanel({
           </div>
         </div>
 
-        <QuickReportForm
-          division={division}
-        />
+        <QuickReportForm division={division} />
       </div>
     </motion.div>
   )
@@ -827,132 +714,83 @@ function DetailPanel({
 export default function RiskMapTab({
   isActive,
 }) {
-  const [riskData, setRiskData] =
-    useState({})
+  const [riskData, setRiskData] = useState({})
 
-  const [summary, setSummary] =
-    useState({
-      critical: [],
-      high: [],
-      moderate: [],
-    })
+  const [summary, setSummary] = useState({
+    critical: [],
+    high: [],
+    moderate: [],
+  })
 
-  const [lastUpdated, setLastUpdated] =
-    useState(null)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
-  const [selectedDiv, setSelectedDiv] =
-    useState(null)
+  const [selectedDiv, setSelectedDiv] = useState(null)
 
-  const [loadError, setLoadError] =
-    useState(false)
+  const [loadError, setLoadError] = useState(false)
 
-  const [loading, setLoading] =
-    useState(true)
+  const [loading, setLoading] = useState(true)
 
   const pollRef = useRef(null)
 
-  const loadRiskMap =
-    useCallback(
-      async (
-        silent = false
-      ) => {
-        try {
-          if (!silent) {
-            setLoading(true)
-          }
+  const loadRiskMap = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoading(true)
 
-          const [
-            riskRes,
-            alertRes,
-          ] = await Promise.all([
-            fetch(
-              `${API}/risk/all`
-            ),
-            fetch(
-              `${API}/alerts`
-            ),
-          ])
+      const [riskRes, alertRes] = await Promise.all([
+        fetch(`${API}/risk/all`),
+        fetch(`${API}/alerts`),
+      ])
 
-          if (
-            !riskRes.ok ||
-            !alertRes.ok
-          ) {
-            throw new Error()
-          }
+      if (!riskRes.ok || !alertRes.ok) throw new Error()
 
-          const riskJson =
-            await riskRes.json()
+      const riskJson = await riskRes.json()
+      await alertRes.json()
 
-          await alertRes.json()
-
-          setRiskData(
-            riskJson.divisions ||
-              {}
-          )
-
-          setSummary(
-            riskJson.summary || {
-              critical: [],
-              high: [],
-              moderate: [],
-            }
-          )
-
-          setLastUpdated(
-            new Date().toLocaleTimeString()
-          )
-
-          setLoadError(false)
-        } catch {
-          if (!silent) {
-            setLoadError(true)
-          }
-        } finally {
-          setLoading(false)
+      setRiskData(riskJson.divisions || {})
+      setSummary(
+        riskJson.summary || {
+          critical: [],
+          high: [],
+          moderate: [],
         }
-      },
-      []
-    )
+      )
+
+      setLastUpdated(new Date().toLocaleTimeString())
+      setLoadError(false)
+    } catch {
+      if (!silent) setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isActive) {
-      if (pollRef.current) {
-        clearInterval(
-          pollRef.current
-        )
-      }
-
+      if (pollRef.current) clearInterval(pollRef.current)
       return
     }
 
     loadRiskMap()
 
-    pollRef.current =
-      setInterval(() => {
-        loadRiskMap(true)
-      }, 30000)
+    pollRef.current = setInterval(() => {
+      loadRiskMap(true)
+    }, 30000)
 
     return () => {
-      if (pollRef.current) {
-        clearInterval(
-          pollRef.current
-        )
-      }
+      if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [isActive, loadRiskMap])
 
   const sorted = useMemo(() => {
-    return Object.entries(
-      riskData
-    ).sort(
+    return Object.entries(riskData).sort(
       (a, b) =>
-        clampScore(b[1]?.score) -
-        clampScore(a[1]?.score)
+        clampScore(b[1]?.score) - clampScore(a[1]?.score)
     )
   }, [riskData])
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 animate-fadeIn">
+      {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-blue-700">
           <Waves size={13} />
@@ -966,18 +804,8 @@ export default function RiskMapTab({
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Real-time
-              division-level
-              outbreak
-              intelligence powered
-              by live field
-              reports,
-              retraining
-              feedback loops,
-              public health
-              datasets, and
-              AI-assisted
-              surveillance.
+              Real-time division-level outbreak intelligence powered by live field reports,
+              retraining feedback loops, public health datasets, and AI-assisted surveillance.
             </p>
           </div>
 
@@ -999,41 +827,27 @@ export default function RiskMapTab({
         </div>
       </div>
 
+      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Critical"
-          value={
-            summary.critical
-              ?.length ?? '–'
-          }
+          value={summary.critical?.length ?? '–'}
           color="#dc2626"
-          icon={
-            <ShieldAlert size={18} />
-          }
+          icon={<ShieldAlert size={18} />}
         />
 
         <StatCard
           label="High Risk"
-          value={
-            summary.high
-              ?.length ?? '–'
-          }
+          value={summary.high?.length ?? '–'}
           color="#ea580c"
-          icon={
-            <TrendingUp size={18} />
-          }
+          icon={<TrendingUp size={18} />}
         />
 
         <StatCard
           label="Moderate"
-          value={
-            summary.moderate
-              ?.length ?? '–'
-          }
+          value={summary.moderate?.length ?? '–'}
           color="#ca8a04"
-          icon={
-            <Activity size={18} />
-          }
+          icon={<Activity size={18} />}
         />
 
         <StatCard
@@ -1045,36 +859,23 @@ export default function RiskMapTab({
       </div>
 
       <AnimatePresence>
-        {selectedDiv &&
-          riskData[
-            selectedDiv
-          ] && (
-            <DetailPanel
-              division={
-                selectedDiv
-              }
-              data={
-                riskData[
-                  selectedDiv
-                ]
-              }
-            />
-          )}
+        {selectedDiv && riskData[selectedDiv] && (
+          <DetailPanel
+            division={selectedDiv}
+            data={riskData[selectedDiv]}
+          />
+        )}
       </AnimatePresence>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
             <h3 className="text-sm font-black text-slate-800">
-              Division Risk
-              Scores
+              Division Risk Scores
             </h3>
 
             <p className="mt-1 text-xs text-slate-400">
-              Tap a division to
-              view disease
-              analytics and AI
-              briefing
+              Tap a division to view disease analytics and AI briefing
             </p>
           </div>
         </div>
@@ -1083,73 +884,47 @@ export default function RiskMapTab({
           {loadError && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-6 text-center">
               <div className="text-sm font-bold text-red-700">
-                Could not load
-                risk data
+                Could not load risk data
               </div>
-
               <p className="mt-1 text-xs text-red-500">
-                Is the backend
-                running on port
-                8000?
+                Is the backend running on port 8000?
               </p>
             </div>
           )}
 
-          {loading &&
-            !loadError && (
-              <div className="space-y-4">
-                {[1, 2, 3].map(
-                  item => (
-                    <div
-                      key={item}
-                      className="h-28 animate-pulse rounded-2xl bg-slate-100"
-                    />
-                  )
-                )}
-              </div>
-            )}
-
-          {!loading &&
-            !sorted.length &&
-            !loadError && (
-              <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400">
-                <Loader2
-                  size={16}
-                  className="animate-spin"
+          {loading && !loadError && (
+            <div className="space-y-4">
+              {[1, 2, 3].map(item => (
+                <div
+                  key={item}
+                  className="h-28 animate-pulse rounded-2xl bg-slate-100"
                 />
+              ))}
+            </div>
+          )}
 
-                No live data
-                available
-              </div>
-            )}
+          {!loading && !sorted.length && !loadError && (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-400">
+              <Loader2 size={16} className="animate-spin" />
+              No live data available
+            </div>
+          )}
 
           <div className="space-y-4">
-            {sorted.map(
-              ([name, data]) => (
-                <DivisionRow
-                  key={name}
-                  name={name}
-                  data={data}
-                  selected={
-                    selectedDiv ===
-                    name
-                  }
-                  onClick={() =>
-                    setSelectedDiv(
-                      prev =>
-                        prev ===
-                        name
-                          ? null
-                          : name
-                    )
-                  }
-                />
-              )
-            )}
+            {sorted.map(([name, data]) => (
+              <DivisionRow
+                key={name}
+                name={name}
+                data={data}
+                selected={selectedDiv === name}
+                onClick={() =>
+                  setSelectedDiv(prev => (prev === name ? null : name))
+                }
+              />
+            ))}
           </div>
         </div>
       </div>
     </div>
   )
 }
-
