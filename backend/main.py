@@ -7,13 +7,7 @@ from deep_translator import GoogleTranslator
 import json, os, subprocess, sys
 from datetime import datetime
 
-from backend.auth.models import init_db
-from backend.auth.routes import router as auth_router
-
-app = FastAPI(title="Niramoy API")
-
-init_db()
-app.include_router(auth_router)
+app = FastAPI(title="JotnoSathi API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,10 +43,12 @@ QUEUE_FILES = {
 
 RETRAIN_THRESHOLD = 5
 
-# ── Load RAG chain ────────────────────────────────────────────────────────────
-print("🔄 Loading Niramoy AI engine...")
-db, llm = load_rag_chain()
-print("✅ RAG engine ready!")
+# ── RAG chain loads lazily on first /triage request ──────────────────────────
+# Do NOT call load_rag_chain() at module level — it loads a 300MB HuggingFace
+# model and will exhaust Render's 512MB free tier before the port binds.
+# query() in query.py calls get_db() on first use automatically.
+db  = None
+llm = None
 
 # ── Load risk scores ──────────────────────────────────────────────────────────
 def load_risk_scores():
@@ -123,54 +119,18 @@ def save_field_reports(reports):
         json.dump(reports, f, indent=2)
 
 # ── LLM response parsers ──────────────────────────────────────────────────────
-# def extract_risk_level(response_text: str) -> str:
-#     for line in response_text.splitlines():
-#         if "RISK LEVEL" in line.upper():
-#             for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
-#                 if level in line.upper():
-#                     return level
-#     return "UNKNOWN"
 def extract_risk_level(response_text: str) -> str:
-    # Bangla risk level mappings (Groq responds in Bangla when language=bn)
-    BANGLA_MAP = {
-        "জরুরি":      "EMERGENCY",
-        "জরুরী":      "EMERGENCY",
-        "অত্যন্ত উচ্চ": "EMERGENCY",
-        "উচ্চ":        "HIGH",
-        "মাঝারি":      "MEDIUM",
-        "মধ্যম":       "MEDIUM",
-        "কম":          "LOW",
-        "নিম্ন":        "LOW",
-    }
     for line in response_text.splitlines():
-        line_upper = line.upper()
-        # English check — original logic
-        if "RISK LEVEL" in line_upper or "ঝুঁকি" in line or "ঝুকি" in line:
+        if "RISK LEVEL" in line.upper():
             for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
-                if level in line_upper:
+                if level in line.upper():
                     return level
-            # Bangla value on same line
-            for bangla, english in BANGLA_MAP.items():
-                if bangla in line:
-                    return english
-    # Second pass — scan whole response for Bangla risk words
-    for bangla, english in BANGLA_MAP.items():
-        if bangla in response_text:
-            return english
     return "UNKNOWN"
-
-
-# def extract_referral(response_text: str) -> bool:
-#     for line in response_text.splitlines():
-#         if "REFERRAL NEEDED" in line.upper():
-#             return "YES" in line.upper()
-#     return False
 
 def extract_referral(response_text: str) -> bool:
     for line in response_text.splitlines():
-        if "REFERRAL NEEDED" in line.upper() or "রেফারেল" in line or "রেফার" in line:
-            if "YES" in line.upper() or "হ্যাঁ" in line or "জরুরি" in line:
-                return True
+        if "REFERRAL NEEDED" in line.upper():
+            return "YES" in line.upper()
     return False
 
 # ════════════════════════════════════════════════════════════════════════════

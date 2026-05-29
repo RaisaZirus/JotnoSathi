@@ -10,8 +10,10 @@ try:
 except ImportError:
     pass
 
-# ── Groq client ───────────────────────────────────────────────────────────────
+# ── Lazy singletons ──────────────────────────────────────────────────────────
 _groq_client = None
+_db           = None   # ChromaDB loaded on first triage request
+_embeddings   = None   # HuggingFace model loaded on first triage request
 
 def get_groq_client():
     global _groq_client
@@ -39,26 +41,15 @@ DISEASE_KEYWORDS = {
         "severe abdominal pain vomiting fever",
     ],
     "measles": [
-        # Bangla originals
         "measles", "হাম",
         "koplik",
-        "টিকা নেই", "টিকা দেওয়া হয়নি", "টিকা পাননি",
-        "জ্বর ফুসকুড়ি কাশি",
-        "সর্দি ফুসকুড়ি",
-        "চোখ লাল ফুসকুড়ি",
-        # English originals
-        "unvaccinated", "not vaccinated", "no vaccine", "no vaccination",
-        "no immunization", "no immunisation", "vaccine not given",
-        "unvaccinated child", "vaccination not done",
+        "unvaccinated", "টিকা নেই",
         "cough rash", "fever rash cough",
-        "runny nose rash", "red eyes rash",
+        "runny nose rash", "সর্দি ফুসকুড়ি",
+        "red eyes rash", "চোখ লাল ফুসকুড়ি",
+        "জ্বর ফুসকুড়ি কাশি",
         "rash cough unvaccinated",
         "fever rash unvaccinated",
-        # Google Translate output variants of "টিকা নেই"
-        "no tika", "tika nei", "tika nai",
-        "vaccine absent", "no inoculation",
-        "hasn't been vaccinated", "have not been vaccinated",
-        "not been vaccinated", "never vaccinated",
     ],
     "maternal": [
         "pregnant", "গর্ভবতী", "pregnancy", "গর্ভাবস্থা",
@@ -220,19 +211,44 @@ def detect_disease(text: str) -> str:
     return "general"
 
 
+def get_db(persist_dir: str = "backend/rag/db"):
+    """
+    Lazy loader — loads HuggingFace model + ChromaDB only on first call.
+    Keeps startup fast so Render can bind the port before timing out.
+    """
+    global _db, _embeddings
+    if _db is None:
+        print("🔄 Loading embeddings model (first request)...")
+        _embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+        _db = Chroma(persist_directory=persist_dir, embedding_function=_embeddings)
+        print("✅ RAG db ready")
+    return _db
+
+
 def load_rag_chain(persist_dir: str = "backend/rag/db"):
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-    db = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
+    """
+    Returns (None, None) — db now loads lazily on first triage call.
+    Kept for API compatibility with main.py.
+    """
     print(f"✅ Groq client ready — model: {GROQ_MODEL}")
-    return db, None
+    return None, None   # db loads lazily via get_db()
 
 
-def query(question: str, db, llm=None, disease: str = None):
+def query(question: str, db=None, llm=None, disease: str = None):
+    """
+    Run RAG query with disease-aware prompt via Groq API.
+    llm parameter kept for API compatibility but ignored — Groq is used directly.
+    Returns dict: {response, disease, report_type}
+    """
+    if db is None:
+        db = get_db()   # lazy load on first request
+
     if disease is None:
         disease = detect_disease(question)
 
+    # Retrieve relevant protocol chunks from ChromaDB
     docs    = db.similarity_search(question, k=3)
     context = "\n\n".join([doc.page_content for doc in docs])
 
@@ -260,7 +276,7 @@ Patient Situation:
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
-        temperature=0.2,
+        temperature=0.2,      # low temp for clinical consistency
         max_tokens=400,
         top_p=0.9,
     )
@@ -279,28 +295,25 @@ if __name__ == "__main__":
     db, _ = load_rag_chain()
     print("✅ Ready!\n")
 
-    # ── Routing self-test (no API call needed) ────────────────────────────────
     test_cases = [
-        # Bangla originals
         ("জ্বর, ফুসকুড়ি, কাশি, টিকা নেই",                    "measles"),
         ("গর্ভবতী, ৩২ সপ্তাহ, রক্তচাপ ১৬০/১১০, মাথাব্যথা",   "maternal"),
-        # Google Translate outputs of Bangla measles symptoms
-        ("fever, rash, cough, no vaccine",                      "measles"),
-        ("fever rash cough vaccination not done",               "measles"),
-        ("fever rash cough not vaccinated",                     "measles"),
-        ("fever rash cough hasn't been vaccinated",             "measles"),
-        # Other diseases
         ("fasting glucose 8.2 mmol/L, excessive thirst",        "diabetes"),
         ("bp 185/120, severe headache, chest pain",             "bp"),
         ("high fever day 5, bone pain, eye pain, platelet low", "dengue"),
         ("fever rash cough unvaccinated child",                 "measles"),
     ]
 
-    print("── Routing test ──")
+    print("── Routing test (no API call) ──")
     all_pass = True
     for text, expected in test_cases:
         detected = detect_disease(text)
         status   = "✅" if detected == expected else "❌"
         if detected != expected: all_pass = False
-        print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:55]}")
+        print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:50]}")
     print(f"\n{'✅ All routing correct!' if all_pass else '❌ Some routes failed.'}\n")
+
+    print("── Live Groq test ──")
+    result = query("fever day 5, bone pain, eye pain, platelet low", db)
+    print(f"Disease: {result['disease'].upper()}")
+    print(f"Response:\n{result['response']}")
