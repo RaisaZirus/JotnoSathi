@@ -7,7 +7,7 @@ from deep_translator import GoogleTranslator
 import json, os, subprocess, sys
 from datetime import datetime
 
-app = FastAPI(title="Niramoy API")
+app = FastAPI(title="JotnoSathi API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,10 +43,12 @@ QUEUE_FILES = {
 
 RETRAIN_THRESHOLD = 5
 
-# ── Load RAG chain ────────────────────────────────────────────────────────────
-print("🔄 Loading Niramoy AI engine...")
-db, llm = load_rag_chain()
-print("✅ RAG engine ready!")
+# ── RAG chain loads lazily on first /triage request ──────────────────────────
+# Do NOT call load_rag_chain() at module level — it loads a 300MB HuggingFace
+# model and will exhaust Render's 512MB free tier before the port binds.
+# query() in query.py calls get_db() on first use automatically.
+db  = None
+llm = None
 
 # ── Load risk scores ──────────────────────────────────────────────────────────
 def load_risk_scores():

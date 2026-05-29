@@ -10,8 +10,10 @@ try:
 except ImportError:
     pass
 
-# ── Groq client ───────────────────────────────────────────────────────────────
+# ── Lazy singletons ──────────────────────────────────────────────────────────
 _groq_client = None
+_db           = None   # ChromaDB loaded on first triage request
+_embeddings   = None   # HuggingFace model loaded on first triage request
 
 def get_groq_client():
     global _groq_client
@@ -209,26 +211,40 @@ def detect_disease(text: str) -> str:
     return "general"
 
 
+def get_db(persist_dir: str = "backend/rag/db"):
+    """
+    Lazy loader — loads HuggingFace model + ChromaDB only on first call.
+    Keeps startup fast so Render can bind the port before timing out.
+    """
+    global _db, _embeddings
+    if _db is None:
+        print("🔄 Loading embeddings model (first request)...")
+        _embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+        _db = Chroma(persist_directory=persist_dir, embedding_function=_embeddings)
+        print("✅ RAG db ready")
+    return _db
+
+
 def load_rag_chain(persist_dir: str = "backend/rag/db"):
     """
-    Load ChromaDB + embeddings only.
-    LLM is now Groq — no Ollama needed.
-    Returns (db, None) — second value kept for API compatibility with main.py.
+    Returns (None, None) — db now loads lazily on first triage call.
+    Kept for API compatibility with main.py.
     """
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-    db = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     print(f"✅ Groq client ready — model: {GROQ_MODEL}")
-    return db, None   # None replaces Ollama llm object
+    return None, None   # db loads lazily via get_db()
 
 
-def query(question: str, db, llm=None, disease: str = None):
+def query(question: str, db=None, llm=None, disease: str = None):
     """
     Run RAG query with disease-aware prompt via Groq API.
     llm parameter kept for API compatibility but ignored — Groq is used directly.
     Returns dict: {response, disease, report_type}
     """
+    if db is None:
+        db = get_db()   # lazy load on first request
+
     if disease is None:
         disease = detect_disease(question)
 
