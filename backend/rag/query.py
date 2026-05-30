@@ -28,7 +28,7 @@ def get_groq_client():
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
-# ── TF-IDF retrieval ────────────────────────────────────────────────────────
+# ── TF-IDF retrieval ──────────────────────────────────────────────────────────
 
 def _tokenize(text):
     return re.findall(r'[a-zA-Z\u0980-\u09FF]+', text.lower())
@@ -91,7 +91,7 @@ def load_rag_chain(persist_dir: str = "backend/rag/db"):
     return None, None
 
 
-# ── Disease keyword router ───────────────────────────────────────────────────
+# ── Disease keyword router ────────────────────────────────────────────────────
 DISEASE_KEYWORDS = {
     "dengue": [
         "dengue", "ডেঙ্গু", "dengue fever",
@@ -124,6 +124,7 @@ DISEASE_KEYWORDS = {
         "eclampsia", "preeclampsia", "high bp pregnant",
         "week", "সপ্তাহ", "trimester", "kicks", "fetal",
         "miscarriage", "গর্ভপাত",
+        "গর্ভবতী",
     ],
     "diabetes": [
         "diabetes", "ডায়াবেটিস", "diabetic", "sugar",
@@ -146,107 +147,102 @@ DISEASE_KEYWORDS = {
     ],
 }
 
+# ── Disease-specific prompts (all labels in Bangla) ───────────────────────────
 DISEASE_PROMPTS = {
     "dengue": """
-DISEASE DOMAIN: Dengue Fever
+রোগের ক্ষেত্র: ডেঙ্গু জ্বর
 
-Assessment priorities:
-- Day of fever onset (danger zone: day 3–7)
-- Warning signs: severe abdominal pain, vomiting, bleeding, restlessness
-- Platelet drop risk: refer if day 4+ with any warning sign
+মূল্যায়নের অগ্রাধিকার:
+- জ্বর শুরুর দিন (বিপদজনক সময়: ৩–৭ দিন)
+- সতর্কতা চিহ্ন: তীব্র পেট ব্যথা, বমি, রক্তপাত, অস্থিরতা
+- প্লেটলেট কমার ঝুঁকি: ৪+ দিন + যেকোনো সতর্কতা চিহ্ন → রেফার করুন
 
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergency)
-REASON:
-DENGUE WARNING SIGNS PRESENT: (Yes / No — list if Yes)
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না — হ্যাঁ হলে জরুরি মাত্রা: সাধারণ / জরুরি / অতি জরুরি)
+কারণ:
+ডেঙ্গুর সতর্কতা চিহ্ন উপস্থিত: (হ্যাঁ / না — থাকলে তালিকা দিন)
 """,
     "measles": """
-DISEASE DOMAIN: Measles (ACTIVE OUTBREAK — Bangladesh 2026)
+রোগের ক্ষেত্র: হাম (সক্রিয় প্রাদুর্ভাব — বাংলাদেশ ২০২৬)
 
-Assessment priorities:
-- Classic triad: fever + cough/runny nose + red eyes THEN rash
-- Vaccination status: unvaccinated or partially vaccinated = HIGH RISK
-- Danger signs: difficulty breathing, convulsions, unable to drink
-- Measles is HIGHLY CONTAGIOUS — isolation advice is mandatory
+মূল্যায়নের অগ্রাধিকার:
+- ক্লাসিক ত্রয়ী: জ্বর + কাশি/সর্দি + লাল চোখ এবং তারপর ফুসকুড়ি
+- টিকার অবস্থা: টিকা না দেওয়া বা আংশিক = উচ্চ ঝুঁকি
+- বিপদ চিহ্ন: শ্বাসকষ্ট, খিঁচুনি, পানি খেতে না পারা
+- হাম অত্যন্ত ছোঁয়াচে — আইসোলেশন পরামর্শ বাধ্যতামূলক
 
-⚠️ MEASLES ALERT: If fever + rash + cough/runny nose in unvaccinated child → EMERGENCY REFERRAL immediately.
+⚠️ হাম সতর্কতা: টিকাবিহীন শিশুতে জ্বর + ফুসকুড়ি + কাশি/সর্দি → অবিলম্বে জরুরি রেফারেল।
 
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergency)
-REASON:
-ISOLATION ADVISED: (Yes / No)
-VACCINATION STATUS: (Vaccinated / Unvaccinated / Unknown)
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না — হ্যাঁ হলে জরুরি মাত্রা লিখুন)
+কারণ:
+আইসোলেশন পরামর্শ: (হ্যাঁ / না)
+টিকার অবস্থা: (টিকা দেওয়া / টিকা নেই / অজানা)
 """,
     "maternal": """
-DISEASE DOMAIN: Maternal / Antenatal Health
+রোগের ক্ষেত্র: মাতৃস্বাস্থ্য / প্রসবপূর্ব সেবা
 
-Assessment priorities:
-- Gestational week and trimester
-- Danger signs: heavy bleeding, severe headache, blurred vision, fits, no fetal movement
-- Pre-eclampsia flags: BP ≥140/90 + headache + swelling
-- Immediate referral if any danger sign present
+মূল্যায়নের অগ্রাধিকার:
+- গর্ভকালীন সপ্তাহ ও ত্রৈমাসিক
+- বিপদ চিহ্ন: অতিরিক্ত রক্তপাত, তীব্র মাথাব্যথা, ঝাপসা দৃষ্টি, খিঁচুনি, শিশুর নড়াচড়া না থাকা
+- প্রি-এক্লাম্পসিয়ার লক্ষণ: রক্তচাপ ≥১৪০/৯০ + মাথাব্যথা + ফোলা
+- যেকোনো বিপদ চিহ্নে তাৎক্ষণিক রেফারেল
 
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergency)
-REASON:
-DANGER SIGNS PRESENT: (Yes / No — list if Yes)
-GESTATIONAL WEEK: (if mentioned)
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না — হ্যাঁ হলে জরুরি মাত্রা লিখুন)
+কারণ:
+বিপদ চিহ্ন উপস্থিত: (হ্যাঁ / না — থাকলে তালিকা দিন)
+গর্ভকালীন সপ্তাহ: (উল্লেখ থাকলে)
 """,
     "diabetes": """
-DISEASE DOMAIN: Diabetes / Blood Sugar
+রোগের ক্ষেত্র: ডায়াবেটিস / রক্তে শর্করা
 
-Assessment priorities:
-- Fasting glucose reading (normal <5.6, pre-diabetic 5.6–6.9, diabetic ≥7.0 mmol/L)
-- HbA1c if available (diabetic ≥6.5%)
-- Symptoms: thirst, frequent urination, blurred vision, slow-healing wounds
-- Gestational diabetes: refer immediately regardless of severity
+মূল্যায়নের অগ্রাধিকার:
+- খালি পেটে গ্লুকোজ (স্বাভাবিক <৫.৬, প্রি-ডায়াবেটিক ৫.৬–৬.৯, ডায়াবেটিক ≥৭.০ mmol/L)
+- HbA1c যদি পাওয়া যায় (ডায়াবেটিক ≥৬.৫%)
+- লক্ষণ: তৃষ্ণা, ঘন ঘন প্রস্রাব, ঝাপসা দৃষ্টি, ক্ষত না সারা
+- গর্ভকালীন ডায়াবেটিস: তীব্রতা নির্বিশেষে তাৎক্ষণিক রেফারেল
 
-Advice tiers:
-- Normal reading + no symptoms → lifestyle advice, retest in 3 months
-- Pre-diabetic → lifestyle advice + refer to upazila for confirmation
-- Diabetic reading → refer to upazila health complex
-- Gestational diabetes → emergency referral
-
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergency)
-REASON:
-GLUCOSE READING: (if mentioned)
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না — হ্যাঁ হলে জরুরি মাত্রা লিখুন)
+কারণ:
+গ্লুকোজ রিডিং: (উল্লেখ থাকলে)
 """,
     "bp": """
-DISEASE DOMAIN: Blood Pressure / Hypertension
+রোগের ক্ষেত্র: রক্তচাপ / উচ্চ রক্তচাপ
 
-Assessment priorities:
-- Classify reading:
-  Normal: <120/80
-  Elevated: 120–129/<80
-  Stage 1 HTN: 130–139/80–89
-  Stage 2 HTN: ≥140/90
-  Hypertensive Crisis: ≥180/120 → EMERGENCY
-- Associated symptoms: headache, chest pain, shortness of breath, vision changes
-- If pregnant + BP ≥140/90 → pre-eclampsia protocol (refer to maternal domain)
+মূল্যায়নের অগ্রাধিকার:
+- রিডিং শ্রেণিবিভাগ:
+  স্বাভাবিক: <১২০/৮০
+  উচ্চ: ১২০–১২৯/<৮০
+  স্তর ১: ১৩০–১৩৯/৮০–৮৯
+  স্তর ২: ≥১৪০/৯০
+  হাইপারটেনসিভ ক্রাইসিস: ≥১৮০/১২০ → জরুরি
+- সংশ্লিষ্ট লক্ষণ: মাথাব্যথা, বুকে ব্যথা, শ্বাসকষ্ট, দৃষ্টি পরিবর্তন
+- গর্ভবতী + রক্তচাপ ≥১৪০/৯০ → প্রি-এক্লাম্পসিয়া প্রোটোকল
 
-⚠️ BP ≥180/120: EMERGENCY referral. Do not wait.
+⚠️ রক্তচাপ ≥১৮০/১২০: জরুরি রেফারেল। দেরি করবেন না।
 
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No — if Yes, state urgency: Routine / Urgent / Emergency)
-REASON:
-BP CLASSIFICATION: (Normal / Elevated / Stage 1 / Stage 2 / Crisis)
-BP READING: (if mentioned)
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না — হ্যাঁ হলে জরুরি মাত্রা লিখুন)
+কারণ:
+রক্তচাপ শ্রেণি: (স্বাভাবিক / উচ্চ / স্তর ১ / স্তর ২ / ক্রাইসিস)
+রক্তচাপ রিডিং: (উল্লেখ থাকলে)
 """,
     "general": """
-DISEASE DOMAIN: General / Unspecified
+রোগের ক্ষেত্র: সাধারণ / অনির্দিষ্ট
 
-Assess the situation carefully using available protocols.
+উপলব্ধ প্রোটোকল ব্যবহার করে পরিস্থিতি সাবধানে মূল্যায়ন করুন।
 
-RISK LEVEL: (Low / Medium / High / EMERGENCY)
-IMMEDIATE ACTION:
-REFERRAL NEEDED: (Yes / No)
-REASON:
+ঝুঁকির মাত্রা: (কম / মধ্যম / উচ্চ / জরুরি)
+তাৎক্ষণিক পদক্ষেপ:
+রেফারেল প্রয়োজন: (হ্যাঁ / না)
+কারণ:
 """,
 }
 
@@ -285,20 +281,26 @@ def query(question: str, db=None, llm=None, disease: str = None):
 
     disease_fragment = DISEASE_PROMPTS.get(disease, DISEASE_PROMPTS["general"])
 
+    # ── System prompt: Bangla response is mandatory ───────────────────────────
     system_prompt = """You are JotnoSathi — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
+
+⚠️ CRITICAL LANGUAGE RULE: You MUST respond entirely in Bengali (Bangla) script. Every single field, label, and value must be written in Bengali. Do NOT use English in your response except for numbers and universally accepted medical abbreviations (mmol/L, HbA1c, BP, ANC, WHO).
+
 You assist, you do NOT diagnose. Always recommend referral when in doubt.
 Use the provided WHO/DGHS protocol context to guide your response.
-Respond in simple, clear language a health worker can act on immediately.
-তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না। (You are assisting, not diagnosing.)
+তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না।
 Keep your response concise and structured — under 200 words."""
 
-    user_prompt = f"""WHO Protocol Context:
+    # ── User prompt: Bengali instruction reinforced again ─────────────────────
+    user_prompt = f"""WHO প্রোটোকল প্রসঙ্গ:
 {context}
 
-Patient Situation:
+রোগীর পরিস্থিতি:
 {question}
 
-{disease_fragment}"""
+{disease_fragment}
+
+⚠️ মনে রাখুন: সম্পূর্ণ উত্তর বাংলায় লিখুন।"""
 
     client = get_groq_client()
     completion = client.chat.completions.create(
