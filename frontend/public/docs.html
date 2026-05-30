@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JotnoSathi — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --teal:     #0F766E;
+  --teal-mid: #14B8A6;
+  --teal-lt:  #CCFBF1;
+  --teal-dk:  #0D5C56;
+  --navy:     #0c1f2e;
+  --bg:       #F8FAFC;
+  --white:    #FFFFFF;
+  --border:   #E2E8F0;
+  --text-1:   #0F172A;
+  --text-2:   #475569;
+  --text-3:   #94A3B8;
+  --red:      #EF4444;
+  --orange:   #F97316;
+  --pink:     #EC4899;
+  --purple:   #8B5CF6;
+  --blue:     #3B82F6;
+  --mono:     'DM Mono', monospace;
+  --sans:     'Inter', sans-serif;
+  --display:  'Plus Jakarta Sans', sans-serif;
+}
+body { font-family: var(--sans); background: var(--bg); color: var(--text-1); -webkit-font-smoothing: antialiased; }
+
+/* Nav */
+.nav { background: var(--navy); padding: 0 40px; display: flex; align-items: center; height: 60px; gap: 16px; position: sticky; top: 0; z-index: 100; }
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-img { width: 32px; height: 32px; border-radius: 8px; object-fit: contain; }
+.nav-logo-name { font-family: var(--display); font-size: 17px; font-weight: 800; color: white; letter-spacing: -0.3px; }
+.nav-badge { margin-left: auto; font-size: 10.5px; font-weight: 600; background: rgba(15,118,110,0.3); border: 1px solid rgba(15,118,110,0.5); color: #5eead4; padding: 4px 12px; border-radius: 20px; }
+.nav-links { display: flex; gap: 24px; margin-left: 32px; }
+.nav-link { font-size: 13px; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 150ms; }
+.nav-link:hover { color: white; }
+
+/* Hero */
+.hero { background: linear-gradient(160deg, #0c1f2e 0%, #0F3D38 50%, #0c4a43 100%); padding: 72px 40px 64px; text-align: center; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(15,118,110,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(15,118,110,0.08) 1px, transparent 1px); background-size: 48px 48px; }
+.hero-inner { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
+.hero-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(15,118,110,0.2); border: 1px solid rgba(15,118,110,0.4); color: #5eead4; font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 20px; margin-bottom: 28px; }
+.hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #2dd4bf; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(45,212,191,0.4); } 50% { box-shadow: 0 0 0 5px rgba(45,212,191,0); } }
+.hero-title { font-family: var(--display); font-size: clamp(32px, 5vw, 56px); font-weight: 800; color: white; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+.hero-accent { background: linear-gradient(135deg, #2dd4bf, #0F766E); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-sub { font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 36px; }
+.hero-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0F766E, #0d5c56); color: white; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; transition: all 180ms; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,118,110,0.4); }
+.btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 10px; cursor: pointer; text-decoration: none; transition: all 180ms; }
+.btn-secondary:hover { background: rgba(255,255,255,0.13); }
+
+/* Stats */
+.stats { display: flex; justify-content: center; background: var(--navy); border-top: 1px solid rgba(255,255,255,0.06); }
+.stat { padding: 20px 36px; text-align: center; border-right: 1px solid rgba(255,255,255,0.07); }
+.stat:last-child { border-right: none; }
+.stat-num { font-family: var(--display); font-size: 24px; font-weight: 800; color: #2dd4bf; }
+.stat-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px; font-weight: 500; }
+
+/* Section */
+.section { padding: 64px 40px; }
+.section-alt { background: white; }
+.section-inner { max-width: 1000px; margin: 0 auto; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+.section-title { font-family: var(--display); font-size: clamp(22px, 3vw, 32px); font-weight: 800; color: var(--text-1); letter-spacing: -0.5px; margin-bottom: 10px; }
+.section-sub { font-size: 15px; color: var(--text-2); margin-bottom: 40px; line-height: 1.65; }
+
+/* Cards grid */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 24px; transition: all 200ms; }
+.card:hover { box-shadow: 0 8px 30px rgba(15,118,110,0.1); border-color: rgba(15,118,110,0.25); transform: translateY(-2px); }
+.card-icon { width: 42px; height: 42px; border-radius: 10px; background: #F0FDFA; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; }
+.card-title { font-size: 14px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+.card-desc { font-size: 13px; color: var(--text-2); line-height: 1.65; }
+
+/* Architecture */
+.arch { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--border); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+.arch-block { background: white; padding: 24px 20px; }
+.arch-layer { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+.arch-name { font-size: 15px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+.arch-detail { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+.arch-chip { display: inline-block; background: #F0FDFA; color: var(--teal-dk); font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px; margin: 3px 2px 0 0; border: 1px solid rgba(15,118,110,0.2); }
+
+/* Disease scores */
+.disease-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+.disease-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.disease-icon { font-size: 22px; margin-bottom: 10px; }
+.disease-name { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+.disease-factor { font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+.disease-bar-wrap { margin-top: 12px; height: 4px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
+.disease-bar { height: 100%; border-radius: 4px; }
+
+/* RAG pipeline */
+.pipeline { display: flex; align-items: stretch; gap: 0; overflow-x: auto; }
+.pipe-step { flex: 1; min-width: 130px; background: white; border: 1px solid var(--border); padding: 18px 14px; position: relative; }
+.pipe-step:first-child { border-radius: 12px 0 0 12px; }
+.pipe-step:last-child { border-radius: 0 12px 12px 0; }
+.pipe-arrow { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background: var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; font-size: 11px; color: white; }
+.pipe-step:last-child .pipe-arrow { display: none; }
+.pipe-num { font-size: 10px; font-weight: 700; color: var(--teal); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+.pipe-name { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+.pipe-detail { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+
+/* Stack table */
+.stack { width: 100%; border-collapse: collapse; font-size: 13px; }
+.stack th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.stack td { padding: 12px 14px; border-bottom: 1px solid #F8FAFC; vertical-align: top; }
+.stack tr:last-child td { border-bottom: none; }
+.stack td:first-child { font-weight: 600; color: var(--text-1); white-space: nowrap; }
+.stack td:nth-child(2) { color: var(--teal-dk); font-family: var(--mono); font-size: 12px; }
+.stack td:nth-child(3) { color: var(--text-2); }
+.badge { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+.badge-teal { background: var(--teal-lt); color: var(--teal-dk); }
+.badge-orange { background: #FEF3C7; color: #92400E; }
+.badge-blue { background: #EFF6FF; color: #1E40AF; }
+
+/* Endpoints */
+.endpoint-list { display: flex; flex-direction: column; gap: 8px; }
+.endpoint { display: flex; align-items: center; gap: 12px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-family: var(--mono); font-size: 12.5px; }
+.method { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; min-width: 48px; text-align: center; }
+.get { background: #EFF6FF; color: #1E40AF; }
+.post { background: #F0FDF4; color: #166534; }
+.delete { background: #FEF2F2; color: #991B1B; }
+.endpoint-path { color: var(--text-1); flex: 1; }
+.endpoint-desc { color: var(--text-2); font-family: var(--sans); font-size: 12px; }
+
+/* Bangla note */
+.bangla-box { background: linear-gradient(135deg, #0F3D38, #0c4a43); border-radius: 14px; padding: 28px 32px; color: white; }
+.bangla-title { font-family: var(--display); font-size: 18px; font-weight: 800; margin-bottom: 14px; color: #2dd4bf; }
+.bangla-text { font-size: 22px; color: rgba(255,255,255,0.9); line-height: 1.8; margin-bottom: 10px; }
+.bangla-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+/* Footer */
+.footer { background: var(--navy); padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+.footer-left { font-size: 12px; color: rgba(255,255,255,0.3); }
+.footer-right { font-size: 11px; color: rgba(255,255,255,0.2); font-family: var(--mono); }
+
+@media (max-width: 600px) {
+  .nav { padding: 0 20px; }
+  .hero { padding: 48px 20px 40px; }
+  .section { padding: 40px 20px; }
+  .nav-links { display: none; }
+  .stat { padding: 16px 20px; }
+  .pipeline { flex-direction: column; }
+  .pipe-step { border-radius: 10px !important; }
+  .pipe-arrow { display: none !important; }
+  .footer { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="#" class="nav-logo">
+    <img src="/jotno.png" alt="JotnoSathi" style="width:32px;height:32px;border-radius:8px;object-fit:contain;" />
+    <span class="nav-logo-name">JotnoSathi</span>
+  </a>
+  <div class="nav-links">
+    <a href="#architecture" class="nav-link">Architecture</a>
+    <a href="#rag" class="nav-link">RAG Pipeline</a>
+    <a href="#risk" class="nav-link">Risk Model</a>
+    <a href="#api" class="nav-link">API</a>
+    <a href="#stack" class="nav-link">Stack</a>
+  </div>
+  <span class="nav-badge">Infinity AI BuildFest 2026</span>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-pill"><span class="hero-dot"></span> Live · HealthTech Domain <img src="/jotno.png" alt="" style="width:22px;height:22px;object-fit:contain;border-radius:5px;margin-left:6px;" /></div>
+    <h1 class="hero-title">JotnoSathi<br /><span class="hero-accent">Technical Documentation</span></h1>
+    <p class="hero-sub">AI-powered clinical triage for Bangladesh's 13,000+ Shasthya Shebikas.<br />Bangla LLM triage · Live district risk map · Self-learning feedback loop.</p>
+    <div class="hero-links">
+      <a href="https://jotno-sathi.vercel.app" target="_blank" class="btn-primary">↗ Live Demo</a>
+      <a href="https://jotnosathi-backe.onrender.com/docs" target="_blank" class="btn-secondary">API Docs (Swagger)</a>
+      <a href="https://github.com/RaisaZirus/JotnoSathi" target="_blank" class="btn-secondary">GitHub</a>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">5,934</div><div class="stat-label">WHO/MSF guideline chunks</div></div>
+  <div class="stat"><div class="stat-num">13</div><div class="stat-label">Public health datasets</div></div>
+  <div class="stat"><div class="stat-num">5</div><div class="stat-label">Disease domains</div></div>
+  <div class="stat"><div class="stat-num">8</div><div class="stat-label">Bangladesh divisions</div></div>
+  <div class="stat"><div class="stat-num">&lt;10s</div><div class="stat-label">AI response time</div></div>
+</div>
+
+<!-- What it does -->
+<section class="section section-alt" id="overview">
+  <div class="section-inner">
+    <div class="section-label">Overview</div>
+    <h2 class="section-title">Three systems, one platform</h2>
+    <p class="section-sub">JotnoSathi combines real-time triage, outbreak surveillance, and a self-learning risk model into a zero-cost deployable stack for frontline healthcare in Bangladesh.</p>
+    <div class="cards">
+      <div class="card"><div class="card-icon">🧠</div><div class="card-title">Bangla triage AI</div><div class="card-desc">Workers describe symptoms in Bangla or English. LLaMA 3.3 70B via Groq returns structured clinical guidance — risk level, immediate action, referral decision, danger signs — entirely in Bengali script in under 10 seconds.</div></div>
+      <div class="card"><div class="card-icon">🗺️</div><div class="card-title">Live district risk map</div><div class="card-desc">8 Bangladesh divisions scored across 5 disease models using 13 public datasets. Composite scores use absolute epidemiological ceilings — no max-normalisation inflation. Updates every 30 seconds.</div></div>
+      <div class="card"><div class="card-icon">🔄</div><div class="card-title">Self-learning feedback loop</div><div class="card-desc">Every triage auto-generates a field report. When 5 outbreak reports accumulate for a disease in a division, the risk model retrains automatically — the system gets smarter with every case filed.</div></div>
+      <div class="card"><div class="card-icon">📋</div><div class="card-title">Auto field reports</div><div class="card-desc">Triage silently generates a structured outbreak or registry report in the background — zero extra work for the Shebika. Outbreak diseases (dengue, measles) go to queue; chronic diseases go to registry.</div></div>
+      <div class="card"><div class="card-icon">🏥</div><div class="card-title">Referral network</div><div class="card-desc">Live map of district and tertiary hospitals across all 8 divisions with contact info and specialties — ready for immediate referral routing from any triage result.</div></div>
+      <div class="card"><div class="card-icon">🔒</div><div class="card-title">Ethics first</div><div class="card-desc">Mandatory disclaimer every session: "তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না।" Cannot be skipped. Every response begins with the same principle — assists, never diagnoses.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+  <div class="section-inner">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">System layers</h2>
+    <p class="section-sub">A three-tier architecture designed for zero-cost deployment on free hosting infrastructure while remaining accessible from clinic WiFi in rural Bangladesh.</p>
+    <div class="arch">
+      <div class="arch-block">
+        <div class="arch-layer">Frontend</div>
+        <div class="arch-name">React / Vite</div>
+        <div class="arch-detail">Deployed on Vercel. SPA with 5 tabs: Triage, Reports, Log, Risk Map, Referral. JWT auth stored in localStorage. 30s polling for live risk updates.</div>
+        <div style="margin-top:10px"><span class="arch-chip">React 18</span><span class="arch-chip">Vite</span><span class="arch-chip">Framer Motion</span><span class="arch-chip">Vercel</span></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-layer">Backend API</div>
+        <div class="arch-name">FastAPI / Python</div>
+        <div class="arch-detail">Deployed on Render free tier (512MB RAM). Lazy model loading — TF-IDF index and risk scores loaded on first request only to stay within RAM limits.</div>
+        <div style="margin-top:10px"><span class="arch-chip">FastAPI</span><span class="arch-chip">Uvicorn</span><span class="arch-chip">Pydantic</span><span class="arch-chip">Render</span></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-layer">AI / LLM</div>
+        <div class="arch-name">Groq + LLaMA 3.3 70B</div>
+        <div class="arch-detail">Inference via Groq API. TF-IDF RAG retrieves top-3 WHO/MSF protocol chunks per query. 5 disease-specific Bangla-output prompts. Temperature 0.2 for clinical consistency.</div>
+        <div style="margin-top:10px"><span class="arch-chip">LLaMA 3.3 70B</span><span class="arch-chip">Groq API</span><span class="arch-chip">TF-IDF RAG</span></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-layer">Data / Storage</div>
+        <div class="arch-name">SQLite + JSON files</div>
+        <div class="arch-detail">SQLite for user auth (bcrypt passwords, JWT). JSON files for field reports, case registry, disease queues, risk scores. No external database required.</div>
+        <div style="margin-top:10px"><span class="arch-chip">SQLite</span><span class="arch-chip">SQLAlchemy</span><span class="arch-chip">JSON stores</span></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-layer">Risk Model</div>
+        <div class="arch-name">Per-disease scoring</div>
+        <div class="arch-detail">5 disease models (dengue, measles, maternal, diabetes, BP) trained on 13 public datasets. Absolute ceiling scaling prevents inflation. Composite weighted average with division priors.</div>
+        <div style="margin-top:10px"><span class="arch-chip">scikit-learn</span><span class="arch-chip">pandas</span><span class="arch-chip">numpy</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RAG Pipeline -->
+<section class="section section-alt" id="rag">
+  <div class="section-inner">
+    <div class="section-label">RAG Pipeline</div>
+    <h2 class="section-title">How triage works</h2>
+    <p class="section-sub">From Bangla symptom input to structured clinical guidance in Bangla — every step of the pipeline.</p>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">01</div>
+        <div class="pipe-name">Input</div>
+        <div class="pipe-detail">Shebika enters symptoms in Bangla or English. Bangla input is translated to English via Google Translator for retrieval.</div>
+        <div class="pipe-arrow">→</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">02</div>
+        <div class="pipe-name">Disease detection</div>
+        <div class="pipe-detail">55+ keyword rules (English + Bangla script) route to one of 5 domains. Priority: maternal → BP → diabetes → dengue → measles → general.</div>
+        <div class="pipe-arrow">→</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">03</div>
+        <div class="pipe-name">TF-IDF retrieval</div>
+        <div class="pipe-detail">BM25-style scoring over 5,934 WHO/MSF chunks. IDF weights pre-computed at startup. Top-3 chunks retrieved. ~5MB RAM total.</div>
+        <div class="pipe-arrow">→</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">04</div>
+        <div class="pipe-name">Prompt construction</div>
+        <div class="pipe-detail">WHO context + disease-specific Bangla prompt fragment + symptom text assembled. System prompt enforces full Bangla output. Temp 0.2.</div>
+        <div class="pipe-arrow">→</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">05</div>
+        <div class="pipe-name">LLM generation</div>
+        <div class="pipe-detail">LLaMA 3.3 70B via Groq API generates structured Bangla response: ঝুঁকির মাত্রা, তাৎক্ষণিক পদক্ষেপ, রেফারেল, কারণ, বিপদ চিহ্ন.</div>
+        <div class="pipe-arrow">→</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">06</div>
+        <div class="pipe-name">Auto report</div>
+        <div class="pipe-detail">Field report generated silently. Outbreak diseases → queue (threshold 5 → retrain). Chronic diseases → case registry.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px">
+      <div class="bangla-box">
+        <div class="bangla-title">Sample Bangla triage output</div>
+        <div class="bangla-text">
+          ঝুঁকির মাত্রা: উচ্চ<br/>
+          তাৎক্ষণিক পদক্ষেপ: রক্তচাপ পর্যবেক্ষণ করুন এবং মানসিক সহায়তা প্রদান করুন।<br/>
+          রেফারেল প্রয়োজন: হ্যাঁ, জরুরি<br/>
+          কারণ: তীব্র মাথাব্যথা ও ঝাপসা দৃষ্টি — সম্ভাব্য প্রি-এক্লাম্পসিয়া।<br/>
+          বিপদ চিহ্ন উপস্থিত: হ্যাঁ — তীব্র মাথাব্যথা, ঝাপসা দৃষ্টি
+        </div>
+        <div class="bangla-sub">Input: "গর্ভবতী ৩২ সপ্তাহ, মাথাব্যথা, চোখে ঝাপসা দেখা" · Disease detected: maternal · Response time: &lt;8s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Risk Model -->
+<section class="section" id="risk">
+  <div class="section-inner">
+    <div class="section-label">Risk Model</div>
+    <h2 class="section-title">Division risk scoring</h2>
+    <p class="section-sub">Each division is scored independently across 5 disease domains using 13 public datasets. Composite scores use absolute epidemiological ceilings — not max-normalisation — so scores mean something real.</p>
+
+    <div class="disease-grid">
+      <div class="disease-card">
+        <div class="disease-icon">🦟</div>
+        <div class="disease-name">Dengue</div>
+        <div class="disease-factor">Patient burden, test positivity, climate-driven mosquito risk. Weight: 28%. Ceiling: 65.</div>
+        <div class="disease-bar-wrap"><div class="disease-bar" style="width:65%;background:#F97316;"></div></div>
+      </div>
+      <div class="disease-card">
+        <div class="disease-icon">🔴</div>
+        <div class="disease-name">Measles</div>
+        <div class="disease-factor">Active Bangladesh 2026 outbreak, vaccination gap, under-5 mortality. Weight: 22%. Ceiling: 60.</div>
+        <div class="disease-bar-wrap"><div class="disease-bar" style="width:60%;background:#EF4444;"></div></div>
+      </div>
+      <div class="disease-card">
+        <div class="disease-icon">🤰</div>
+        <div class="disease-name">Maternal</div>
+        <div class="disease-factor">ANC coverage gap, skilled birth attendance, infant mortality, anemia. Weight: 22%. Ceiling: 55.</div>
+        <div class="disease-bar-wrap"><div class="disease-bar" style="width:55%;background:#EC4899;"></div></div>
+      </div>
+      <div class="disease-card">
+        <div class="disease-icon">🩸</div>
+        <div class="disease-name">Diabetes</div>
+        <div class="disease-factor">Prevalence rate, urban weighting, NCD burden. Weight: 15%. Ceiling: 50.</div>
+        <div class="disease-bar-wrap"><div class="disease-bar" style="width:50%;background:#8B5CF6;"></div></div>
+      </div>
+      <div class="disease-card">
+        <div class="disease-icon">💊</div>
+        <div class="disease-name">Hypertension</div>
+        <div class="disease-factor">Hypertension rate, dietary salt proxy, comorbid diabetes risk. Weight: 13%. Ceiling: 50.</div>
+        <div class="disease-bar-wrap"><div class="disease-bar" style="width:50%;background:#3B82F6;"></div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:36px;background:white;border:1px solid var(--border);border-radius:14px;padding:24px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:6px;">Retrain feedback loop</div>
+      <div style="font-size:13px;color:var(--text-2);line-height:1.7;">When 5 outbreak reports (dengue or measles) accumulate for a division, <code style="font-family:var(--mono);background:#F8FAFC;padding:1px 5px;border-radius:4px;font-size:12px;">train_model.py --silent</code> is triggered via subprocess. The updated <code style="font-family:var(--mono);background:#F8FAFC;padding:1px 5px;border-radius:4px;font-size:12px;">risk_scores.json</code> is reloaded into the FastAPI process. Demo: Rajshahi measles starts at 24.8 (LOW) — five field reports push it to HIGH with a visible score jump on the risk map.</div>
+    </div>
+
+    <div style="margin-top:18px;background:white;border:1px solid var(--border);border-radius:14px;padding:24px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:6px;">Baseline division scores (v2.2)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:12px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Dhaka</span><span style="color:var(--orange);font-weight:700;">58.6 HIGH</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Mymensingh</span><span style="color:var(--orange);font-weight:700;">58.2 HIGH</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Chattogram</span><span style="color:var(--orange);font-weight:700;">56.2 HIGH</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Sylhet</span><span style="color:var(--orange);font-weight:700;">55.4 HIGH</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Barishal</span><span style="color:var(--orange);font-weight:700;">51.6 HIGH</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Rangpur</span><span style="color:#CA8A04;font-weight:700;">43.7 MODERATE</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Rajshahi</span><span style="color:#CA8A04;font-weight:700;">41.7 MODERATE</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12.5px;"><span style="font-weight:600;">Khulna</span><span style="color:#CA8A04;font-weight:700;">40.5 MODERATE</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- API Reference -->
+<section class="section section-alt" id="api">
+  <div class="section-inner">
+    <div class="section-label">API Reference</div>
+    <h2 class="section-title">REST endpoints</h2>
+    <p class="section-sub">Full OpenAPI documentation available at <a href="https://jotnosathi-backe.onrender.com/docs" target="_blank" style="color:var(--teal);">jotnosathi-backe.onrender.com/docs</a>. Base URL: <code style="font-family:var(--mono);background:#F1F5F9;padding:2px 6px;border-radius:4px;font-size:12px;">https://jotnosathi-backe.onrender.com</code></p>
+    <div class="endpoint-list">
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/health</span><span class="endpoint-desc">Backend status, model state, field report count</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="endpoint-path">/auth/login</span><span class="endpoint-desc">JWT login — returns access token (8hr expiry)</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="endpoint-path">/auth/register</span><span class="endpoint-desc">Create new Shebika account</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="endpoint-path">/triage</span><span class="endpoint-desc">Submit symptoms → get Bangla clinical guidance + auto field report</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/risk/all</span><span class="endpoint-desc">All 8 division scores with per-disease breakdown</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/risk/{division}</span><span class="endpoint-desc">Single division score + worker briefing</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/risk/districts/{division}</span><span class="endpoint-desc">District-level scores + per-disease breakdown</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/alerts</span><span class="endpoint-desc">Top 5 division alerts for live ticker</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="endpoint-path">/field-report</span><span class="endpoint-desc">Manual field observation submission</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="endpoint-path">/retrain/{disease}</span><span class="endpoint-desc">Manual retrain trigger for dengue or measles</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="endpoint-path">/field-reports/reset</span><span class="endpoint-desc">Clear all reports and restore baseline (pre-demo)</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="endpoint-path">/queue-status</span><span class="endpoint-desc">Per-disease queue counts vs retrain threshold</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section class="section" id="stack">
+  <div class="section-inner">
+    <div class="section-label">Tech Stack</div>
+    <h2 class="section-title">Full open-source stack</h2>
+    <p class="section-sub">Every component is open source. Total infrastructure cost: $0.</p>
+    <div style="background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+      <table class="stack">
+        <thead><tr><th>Component</th><th>Technology</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>LLM inference <span class="badge badge-teal" style="margin-left:6px;">AI</span></td><td>LLaMA 3.3 70B · Groq API</td><td>Bangla clinical triage generation, &lt;10s response</td></tr>
+          <tr><td>RAG retrieval <span class="badge badge-teal" style="margin-left:6px;">AI</span></td><td>Custom TF-IDF · BM25 scoring</td><td>5,934 WHO/MSF chunks, ~5MB RAM, no vector DB needed</td></tr>
+          <tr><td>Translation</td><td>deep-translator (Google)</td><td>Bangla input → English for RAG retrieval only</td></tr>
+          <tr><td>Backend API</td><td>FastAPI · Uvicorn</td><td>REST API, auto Swagger docs, async request handling</td></tr>
+          <tr><td>Auth</td><td>SQLAlchemy · bcrypt · python-jose</td><td>SQLite user DB, hashed passwords, JWT (8hr)</td></tr>
+          <tr><td>Risk models</td><td>pandas · numpy · scikit-learn</td><td>Per-disease scoring over 13 public health datasets</td></tr>
+          <tr><td>Frontend</td><td>React 18 · Vite</td><td>SPA with 5 tabs, JWT auth, 30s live polling</td></tr>
+          <tr><td>Animations</td><td>Framer Motion</td><td>Risk score bars, panel transitions, animated indicators</td></tr>
+          <tr><td>Maps</td><td>react-leaflet</td><td>Referral hospital locations across all divisions</td></tr>
+          <tr><td>Backend hosting <span class="badge badge-orange" style="margin-left:6px;">$0</span></td><td>Render free tier</td><td>512MB RAM, auto-deploy on git push to master</td></tr>
+          <tr><td>Frontend hosting <span class="badge badge-orange" style="margin-left:6px;">$0</span></td><td>Vercel hobby</td><td>CDN-cached, auto-deploy on git push to master</td></tr>
+          <tr><td>Data sources <span class="badge badge-blue" style="margin-left:6px;">13 datasets</span></td><td>WHO GHO · HDX · DHS Bangladesh · Kaggle</td><td>Maternal, dengue, diabetes, measles, TB, malaria, mortality indicators</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Ethics -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-label">Ethics & Safety</div>
+    <h2 class="section-title">Designed to assist, not replace</h2>
+    <p class="section-sub">Clinical safety is the primary design constraint — every architectural decision was made with it in mind.</p>
+    <div class="cards">
+      <div class="card"><div class="card-icon">⚠️</div><div class="card-title">Mandatory disclaimer</div><div class="card-desc">Shown at every session start before app access — stored in sessionStorage, checked on every mount. Cannot be skipped. "You are assisting, not diagnosing."</div></div>
+      <div class="card"><div class="card-icon">🔐</div><div class="card-title">No patient PII stored</div><div class="card-desc">Only symptom text, division name, and anonymous worker_id are stored. No names, no identification. Passwords bcrypt-hashed. JWT tokens expire after 8 hours.</div></div>
+      <div class="card"><div class="card-icon">📖</div><div class="card-title">Grounded in WHO protocols</div><div class="card-desc">Every response is anchored to 5,934 WHO and MSF clinical guideline chunks. The RAG pipeline ensures guidance is protocol-based, not hallucinated.</div></div>
+      <div class="card"><div class="card-icon">🌡️</div><div class="card-title">Low temperature inference</div><div class="card-desc">Temperature 0.2 for all clinical responses — maximises consistency and reduces creative hallucination for structured medical guidance output.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Deployment -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-label">Deployment</div>
+    <h2 class="section-title">Live URLs</h2>
+    <p class="section-sub">Auto-deploys on every push to the master branch. Wake the Render backend before demo — spins down after 15 minutes of inactivity.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+      <a href="https://jotno-sathi.vercel.app" target="_blank" style="display:block;background:white;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;transition:all 200ms;" onmouseover="this.style.borderColor='rgba(15,118,110,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Frontend</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px;">Vercel · Live App</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-3);">jotno-sathi.vercel.app</div>
+      </a>
+      <a href="https://jotnosathi-backe.onrender.com/health" target="_blank" style="display:block;background:white;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;transition:all 200ms;" onmouseover="this.style.borderColor='rgba(15,118,110,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Backend</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px;">Render · FastAPI</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-3);">jotnosathi-backe.onrender.com</div>
+      </a>
+      <a href="https://jotnosathi-backe.onrender.com/docs" target="_blank" style="display:block;background:white;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;transition:all 200ms;" onmouseover="this.style.borderColor='rgba(15,118,110,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">API Docs</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px;">Swagger UI</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-3);">onrender.com/docs</div>
+      </a>
+      <a href="https://github.com/RaisaZirus/JotnoSathi" target="_blank" style="display:block;background:white;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;transition:all 200ms;" onmouseover="this.style.borderColor='rgba(15,118,110,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Source Code</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:4px;">GitHub · master branch</div>
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text-3);">RaisaZirus/JotnoSathi</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="/jotno.png" alt="JotnoSathi" style="width:26px;height:26px;object-fit:contain;border-radius:6px;opacity:0.7;" />
+    <span class="footer-left">© 2026 JotnoSathi · Team AlephNullSeekers · Infinity AI BuildFest · HealthTech Domain</span>
+  </div>
+  <span class="footer-right">WHO · HDX · DHS Bangladesh · Kaggle · 13 datasets · LLaMA 3.3 70B · Groq</span>
+</footer>
+
+</body>
+</html>
