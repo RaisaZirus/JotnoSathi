@@ -68,7 +68,6 @@ RETRAIN_THRESHOLD = 5
 # ── RAG chain loads lazily on first /triage request ──────────────────────────
 # Do NOT call load_rag_chain() at module level — it loads a 300MB HuggingFace
 # model and will exhaust Render's 512MB free tier before the port binds.
-# query() in query.py calls get_db() on first use automatically.
 db  = None
 llm = None
 
@@ -140,16 +139,35 @@ def save_field_reports(reports):
     with open(FIELD_REPORTS_PATH, "w") as f:
         json.dump(reports, f, indent=2)
 
-# ── LLM response parsers ──────────────────────────────────────────────────────
+# ── LLM response parsers — Bangla-aware ──────────────────────────────────────
 def extract_risk_level(response_text: str) -> str:
-    for line in response_text.splitlines():
-        if "RISK LEVEL" in line.upper():
-            for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
-                if level in line.upper():
-                    return level
+    # Bangla field label check
+    if "ঝুঁকির মাত্রা" in response_text:
+        for line in response_text.splitlines():
+            if "ঝুঁকির মাত্রা" in line:
+                if "জরুরি" in line: return "EMERGENCY"
+                if "উচ্চ"  in line: return "HIGH"
+                if "মধ্যম" in line: return "MEDIUM"
+                if "কম"    in line: return "LOW"
+        # Fallback: scan whole response for Bangla risk words
+        if "জরুরি" in response_text: return "EMERGENCY"
+        if "উচ্চ"  in response_text: return "HIGH"
+        if "মধ্যম" in response_text: return "MEDIUM"
+        if "কম"    in response_text: return "LOW"
+    # English fallback (handles any legacy or mixed responses)
+    text_upper = response_text.upper()
+    for level in ["EMERGENCY", "HIGH", "MEDIUM", "LOW"]:
+        if level in text_upper:
+            return level
     return "UNKNOWN"
 
 def extract_referral(response_text: str) -> bool:
+    # Bangla field label check
+    if "রেফারেল প্রয়োজন" in response_text:
+        for line in response_text.splitlines():
+            if "রেফারেল প্রয়োজন" in line:
+                return "হ্যাঁ" in line
+    # English fallback
     for line in response_text.splitlines():
         if "REFERRAL NEEDED" in line.upper():
             return "YES" in line.upper()
@@ -199,17 +217,22 @@ class FieldReport(BaseModel):
 def triage(request: TriageRequest):
     global RISK_SCORES
 
+    # Translate Bangla input → English for disease detection + RAG retrieval
     symptoms_en = request.symptoms
     if request.language == "bn":
-        symptoms_en = GoogleTranslator(source="bn", target="en").translate(request.symptoms)
+        try:
+            symptoms_en = GoogleTranslator(source="bn", target="en").translate(request.symptoms)
+        except Exception as e:
+            print(f"⚠️  Translation failed, using original: {e}")
+            symptoms_en = request.symptoms
 
     disease       = detect_disease(symptoms_en)
     result        = query(symptoms_en, db, llm, disease=disease)
-    response_text = result["response"]
+    response_text = result["response"]   # already in Bangla — query.py enforces this
     report_type   = result["report_type"]
 
-    if request.language == "bn":
-        response_text = GoogleTranslator(source="en", target="bn").translate(response_text)
+    # ⚠️  Do NOT re-translate response — query.py already outputs Bangla directly
+    # from Groq. Running GoogleTranslator on a Bangla response mangles it.
 
     risk_level      = extract_risk_level(response_text)
     referral_needed = extract_referral(response_text)
@@ -268,7 +291,7 @@ def health_check():
     reports = load_field_reports()
     return {
         "status":              "online",
-        "model":               "phi3:mini",
+        "model":               "llama-3.3-70b-versatile",
         "risk_model":          "loaded" if RISK_SCORES else "unavailable",
         "divisions_tracked":   len(RISK_SCORES),
         "field_reports_total": len(reports),
