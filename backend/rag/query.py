@@ -1,5 +1,5 @@
 import os
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.vectorstores import Chroma
 from groq import Groq
 
@@ -213,13 +213,15 @@ def detect_disease(text: str) -> str:
 
 def get_db(persist_dir: str = "backend/rag/db"):
     """
-    Lazy loader — loads HuggingFace model + ChromaDB only on first call.
-    Keeps startup fast so Render can bind the port before timing out.
+    Lazy loader — uses HuggingFace Inference API for embeddings.
+    Runs on HuggingFace servers instead of locally — zero RAM on Render.
     """
     global _db, _embeddings
     if _db is None:
-        print("🔄 Loading embeddings model (first request)...")
-        _embeddings = HuggingFaceEmbeddings(
+        print("🔄 Connecting to HuggingFace embedding API...")
+        hf_token = os.environ.get("HF_TOKEN", "")
+        _embeddings = HuggingFaceInferenceAPIEmbeddings(
+            api_key=hf_token,
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
         _db = Chroma(persist_directory=persist_dir, embedding_function=_embeddings)
@@ -254,7 +256,7 @@ def query(question: str, db=None, llm=None, disease: str = None):
 
     disease_fragment = DISEASE_PROMPTS.get(disease, DISEASE_PROMPTS["general"])
 
-    system_prompt = """You are Niramoy — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
+    system_prompt = """You are JotnoSathi — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
 You assist, you do NOT diagnose. Always recommend referral when in doubt.
 Use ONLY the provided WHO/DGHS protocol context to guide your response.
 Respond in simple, clear language a health worker can act on immediately.
