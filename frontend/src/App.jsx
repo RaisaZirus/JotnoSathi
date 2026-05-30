@@ -693,6 +693,12 @@ export default function App() {
       .then(r => r.json())
       .then(d => { if (d.alerts?.length) setAlerts(d.alerts) })
       .catch(() => {})
+
+    // Keep Render backend alive — pings /health every 10 min to prevent spin-down
+    const keepAlive = setInterval(() => {
+      fetch(`${API}/health`).catch(() => {})
+    }, 10 * 60 * 1000)
+    return () => clearInterval(keepAlive)
   }, [screen])
 
   function addToLog(entry) {
