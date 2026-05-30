@@ -215,7 +215,7 @@ DISEASE_PROMPTS = {
     "bp": """
 রোগের ক্ষেত্র: রক্তচাপ / উচ্চ রক্তচাপ
 
-মূল্যায়নের অগ্রাধিকার:
+মূল্যায়নের অগ্রাধিকার:            
 - রিডিং শ্রেণিবিভাগ:
   স্বাভাবিক: <১২০/৮০
   উচ্চ: ১২০–১২৯/<৮০
@@ -310,7 +310,7 @@ Keep your response concise and structured — under 200 words."""
             {"role": "user",   "content": user_prompt},
         ],
         temperature=0.2,
-        max_tokens=400,
+        max_tokens= 1500,
         top_p=0.9,
     )
 
