@@ -11,13 +11,9 @@ app = FastAPI(title="JotnoSathi API")
 
 app.add_middleware(
     CORSMiddleware,
-     allow_origins=[
-        "http://localhost:3000",
-        "http://jotno-sathi-3y5z.vercel.app",
-    ],
     allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # ── Startup ───────────────────────────────────────────────────────────────────
