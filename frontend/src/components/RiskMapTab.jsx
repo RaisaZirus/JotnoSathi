@@ -50,43 +50,26 @@ const fadeIn = {
 }
 
 const slideUp = {
-  initial: {
-    opacity: 0,
-    y: 10,
-  },
-  animate: {
-    opacity: 1,
-    y: 0,
-  },
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
 }
 
 const DISEASE_OPTIONS = [
-  {
-    value: 'dengue',
-    label: 'Dengue',
-    icon: '🦟',
-  },
-  {
-    value: 'measles',
-    label: 'Measles',
-    icon: '🔴',
-  },
-  {
-    value: 'maternal',
-    label: 'Maternal / ANC',
-    icon: '🤰',
-  },
-  {
-    value: 'diabetes',
-    label: 'Diabetes',
-    icon: '🩸',
-  },
-  {
-    value: 'bp',
-    label: 'Hypertension',
-    icon: '💊',
-  },
+  { value: 'dengue',   label: 'Dengue',         icon: '🦟' },
+  { value: 'measles',  label: 'Measles',         icon: '🔴' },
+  { value: 'maternal', label: 'Maternal / ANC',  icon: '🤰' },
+  { value: 'diabetes', label: 'Diabetes',        icon: '🩸' },
+  { value: 'bp',       label: 'Hypertension',    icon: '💊' },
 ]
+
+// Display config for each disease in the breakdown panel
+const DISEASE_META = {
+  dengue:   { label: 'Dengue',          icon: '🦟', accent: '#f97316' },
+  measles:  { label: 'Measles',         icon: '🔴', accent: '#ef4444' },
+  maternal: { label: 'Maternal / ANC',  icon: '🤰', accent: '#ec4899' },
+  diabetes: { label: 'Diabetes',        icon: '🩸', accent: '#8b5cf6' },
+  bp:       { label: 'Hypertension',    icon: '💊', accent: '#0ea5e9' },
+}
 
 /* ────────────────────────────────────────────────────────────── */
 /* Helpers */
@@ -101,7 +84,6 @@ function getRiskConfig(level) {
         border: 'border-red-200',
         text: 'text-red-700',
       }
-
     case 'high':
       return {
         glow: 'shadow-orange-100',
@@ -109,7 +91,6 @@ function getRiskConfig(level) {
         border: 'border-orange-200',
         text: 'text-orange-700',
       }
-
     default:
       return {
         glow: 'shadow-amber-100',
@@ -121,22 +102,23 @@ function getRiskConfig(level) {
 }
 
 function clampScore(score) {
-  return Math.max(
-    0,
-    Math.min(Number(score || 0), 100)
-  )
+  return Math.max(0, Math.min(Number(score || 0), 100))
+}
+
+function levelColor(level) {
+  switch ((level || '').toLowerCase()) {
+    case 'critical': return '#dc2626'
+    case 'high':     return '#ea580c'
+    case 'moderate': return '#ca8a04'
+    default:         return '#16a34a'
+  }
 }
 
 /* ────────────────────────────────────────────────────────────── */
 /* Stat Card */
 /* ────────────────────────────────────────────────────────────── */
 
-function StatCard({
-  label,
-  value,
-  icon,
-  color,
-}) {
+function StatCard({ label, value, icon, color }) {
   return (
     <motion.div
       whileHover={{ y: -2 }}
@@ -147,21 +129,13 @@ function StatCard({
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
             {label}
           </p>
-
-          <div
-            className="mt-3 text-3xl font-black tracking-tight"
-            style={{ color }}
-          >
+          <div className="mt-3 text-3xl font-black tracking-tight" style={{ color }}>
             {value}
           </div>
         </div>
-
         <div
           className="flex h-11 w-11 items-center justify-center rounded-2xl"
-          style={{
-            backgroundColor: `${color}14`,
-            color,
-          }}
+          style={{ backgroundColor: `${color}14`, color }}
         >
           {icon}
         </div>
@@ -171,34 +145,96 @@ function StatCard({
 }
 
 /* ────────────────────────────────────────────────────────────── */
+/* Per-Disease Breakdown — NEW COMPONENT */
+/* ────────────────────────────────────────────────────────────── */
+
+function PerDiseaseBreakdown({ perDiseaseScores }) {
+  if (!perDiseaseScores || Object.keys(perDiseaseScores).length === 0) return null
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+        <Activity size={16} className="text-slate-500" />
+        <h4 className="text-sm font-bold text-slate-800">
+          Per-Disease Risk Breakdown
+        </h4>
+      </div>
+
+      {/* Disease rows */}
+      <div className="divide-y divide-slate-100">
+        {Object.entries(perDiseaseScores).map(([disease, data]) => {
+          const meta    = DISEASE_META[disease] || { label: disease, icon: '🏥', accent: '#64748b' }
+          const score   = clampScore(data?.score)
+          const color   = levelColor(data?.risk_level)
+          const topFactor = data?.top_factors?.[0] || ''
+
+          return (
+            <div key={disease} className="px-5 py-4">
+              {/* Disease name + badge */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{meta.icon}</span>
+                  <span className="text-sm font-bold text-slate-700">
+                    {meta.label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide"
+                    style={{
+                      backgroundColor: `${color}18`,
+                      color,
+                    }}
+                  >
+                    {data?.risk_level || 'N/A'}
+                  </span>
+                  <span
+                    className="text-lg font-black tabular-nums"
+                    style={{ color }}
+                  >
+                    {score}
+                  </span>
+                </div>
+              </div>
+
+              {/* Score bar */}
+              <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 mb-2">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${score}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="h-full rounded-full"
+                  style={{ background: color }}
+                />
+              </div>
+
+              {/* Top factor */}
+              {topFactor && (
+                <p className="text-[11px] text-slate-400 truncate">
+                  {topFactor}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────── */
 /* Division Row */
 /* ────────────────────────────────────────────────────────────── */
 
-function DivisionRow({
-  name,
-  data,
-  selected,
-  onClick,
-}) {
-  const [barWidth, setBarWidth] =
-    useState(0)
-
+function DivisionRow({ name, data, selected, onClick }) {
+  const [barWidth, setBarWidth] = useState(0)
   const score = clampScore(data?.score)
-
-  const color =
-    LEVEL_COLORS[
-      data?.risk_level
-    ] || '#64748b'
-
-  const risk = getRiskConfig(
-    data?.risk_level
-  )
+  const color = LEVEL_COLORS[data?.risk_level] || '#64748b'
+  const risk  = getRiskConfig(data?.risk_level)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setBarWidth(score)
-    }, 120)
-
+    const timer = setTimeout(() => setBarWidth(score), 120)
     return () => clearTimeout(timer)
   }, [score])
 
@@ -215,40 +251,25 @@ function DivisionRow({
           : 'border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md'
       }`}
     >
-      <div
-        className="absolute left-0 top-0 h-full w-1.5"
-        style={{
-          background: color,
-        }}
-      />
+      <div className="absolute left-0 top-0 h-full w-1.5" style={{ background: color }} />
 
       <div className="px-5 py-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <MapPinned
-                size={15}
-                className="text-slate-400"
-              />
-
+              <MapPinned size={15} className="text-slate-400" />
               <h3 className="truncate text-sm font-bold text-slate-800">
                 {name} Division
               </h3>
             </div>
-
             <p className="mt-1 truncate text-xs text-slate-400">
-              {data?.top_factors?.[0] ||
-                'Live outbreak surveillance'}
+              {data?.top_factors?.[0] || 'Live outbreak surveillance'}
             </p>
           </div>
 
           <div className="flex flex-col items-end gap-2">
             <Badge level={data?.risk_level} />
-
-            <div
-              className="text-lg font-black tabular-nums"
-              style={{ color }}
-            >
+            <div className="text-lg font-black tabular-nums" style={{ color }}>
               {score}
             </div>
           </div>
@@ -259,26 +280,15 @@ function DivisionRow({
             <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
               Risk Score
             </span>
-
-            <span className="text-[11px] font-semibold text-slate-500">
-              /100
-            </span>
+            <span className="text-[11px] font-semibold text-slate-500">/100</span>
           </div>
-
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <motion.div
               initial={{ width: 0 }}
-              animate={{
-                width: `${barWidth}%`,
-              }}
-              transition={{
-                duration: 0.7,
-                ease: 'easeOut',
-              }}
+              animate={{ width: `${barWidth}%` }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
               className="h-full rounded-full"
-              style={{
-                background: color,
-              }}
+              style={{ background: color }}
             />
           </div>
         </div>
@@ -287,13 +297,10 @@ function DivisionRow({
           <span className="text-[11px] font-medium text-slate-400">
             Tap for live briefing
           </span>
-
           <ChevronDown
             size={16}
             className={`transition-transform duration-200 ${
-              selected
-                ? 'rotate-180 text-slate-700'
-                : 'text-slate-300'
+              selected ? 'rotate-180 text-slate-700' : 'text-slate-300'
             }`}
           />
         </div>
@@ -306,34 +313,18 @@ function DivisionRow({
 /* Quick Report Form */
 /* ────────────────────────────────────────────────────────────── */
 
-function QuickReportForm({
-  division,
-}) {
-  const [disease, setDisease] =
-    useState('')
+function QuickReportForm({ division }) {
+  const [disease,    setDisease]    = useState('')
+  const [outcome,    setOutcome]    = useState('monitoring')
+  const [fields,     setFields]     = useState({})
+  const [status,     setStatus]     = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  const [outcome, setOutcome] =
-    useState('monitoring')
-
-  const [fields, setFields] =
-    useState({})
-
-  const [status, setStatus] =
-    useState(null)
-
-  const [submitting, setSubmitting] =
-    useState(false)
-
-  const def =
-    DISEASE_FIELDS[disease]
+  const def = DISEASE_FIELDS[disease]
 
   async function submitFieldReport() {
     if (!disease) {
-      setStatus({
-        ok: false,
-        msg: 'Please select a suspected disease.',
-      })
-
+      setStatus({ ok: false, msg: 'Please select a suspected disease.' })
       return
     }
 
@@ -342,77 +333,41 @@ function QuickReportForm({
 
     const payload = {
       division,
-      symptoms: 'Field observation',
+      symptoms:          'Field observation',
       outcome,
       disease_suspected: disease,
-      worker_id:
-        'shebika_' +
-        Math.random()
-          .toString(36)
-          .slice(2, 8),
+      worker_id:         'shebika_' + Math.random().toString(36).slice(2, 8),
     }
 
     if (def) {
-      def.fields
-        .slice(0, 2)
-        .forEach(f => {
-          const val =
-            parseFieldValue(
-              f,
-              fields[f.id]
-            )
-
-          if (val !== null) {
-            payload[f.id] = val
-          }
-        })
+      def.fields.slice(0, 2).forEach(f => {
+        const val = parseFieldValue(f, fields[f.id])
+        if (val !== null) payload[f.id] = val
+      })
     }
 
     try {
-      const res = await fetch(
-        `${API}/field-report`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-          body: JSON.stringify(
-            payload
-          ),
-        }
-      )
+      const res = await fetch(`${API}/field-report`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      })
 
-      if (!res.ok) {
-        throw new Error(
-          'Failed to submit report'
-        )
-      }
+      if (!res.ok) throw new Error('Failed to submit report')
 
       const d = await res.json()
 
-      let msg =
-        'Registry updated successfully.'
-
-      if (
-        d.report_type === 'outbreak'
-      ) {
+      let msg = 'Registry updated successfully.'
+      if (d.report_type === 'outbreak') {
         msg = d.retrain_triggered
           ? `AI retraining triggered for ${division}.`
           : `Queue updated: ${d.queue_size}/5`
       }
 
-      setStatus({
-        ok: true,
-        msg,
-      })
-
+      setStatus({ ok: true, msg })
       setFields({})
     } catch {
-      setStatus({
-        ok: false,
-        msg: 'Could not submit report.',
-      })
+      setStatus({ ok: false, msg: 'Could not submit report.' })
     } finally {
       setSubmitting(false)
     }
@@ -424,15 +379,9 @@ function QuickReportForm({
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
           <ClipboardPlus size={18} />
         </div>
-
         <div>
-          <h4 className="text-sm font-bold text-slate-800">
-            Quick Field Observation
-          </h4>
-
-          <p className="text-xs text-slate-400">
-            Submit real-time community health data
-          </p>
+          <h4 className="text-sm font-bold text-slate-800">Quick Field Observation</h4>
+          <p className="text-xs text-slate-400">Submit real-time community health data</p>
         </div>
       </div>
 
@@ -440,14 +389,10 @@ function QuickReportForm({
         <div className="grid gap-3 sm:grid-cols-2">
           <select
             value={disease}
-            onChange={e => {
-              setDisease(e.target.value)
-              setFields({})
-            }}
+            onChange={e => { setDisease(e.target.value); setFields({}) }}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           >
             <option value="">Select disease</option>
-
             {DISEASE_OPTIONS.map(d => (
               <option key={d.value} value={d.value}>
                 {d.icon} {d.label}
@@ -457,9 +402,7 @@ function QuickReportForm({
 
           <select
             value={outcome}
-            onChange={e =>
-              setOutcome(e.target.value)
-            }
+            onChange={e => setOutcome(e.target.value)}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           >
             <option value="monitoring">Monitoring</option>
@@ -476,18 +419,14 @@ function QuickReportForm({
               exit={{ opacity: 0, height: 0 }}
               className="space-y-3 overflow-hidden"
             >
-              <div
-                className={`rounded-xl border px-4 py-3 text-xs font-semibold ${
-                  def.report_type === 'outbreak'
-                    ? 'border-orange-200 bg-orange-50 text-orange-700'
-                    : 'border-blue-200 bg-blue-50 text-blue-700'
-                }`}
-              >
+              <div className={`rounded-xl border px-4 py-3 text-xs font-semibold ${
+                def.report_type === 'outbreak'
+                  ? 'border-orange-200 bg-orange-50 text-orange-700'
+                  : 'border-blue-200 bg-blue-50 text-blue-700'
+              }`}>
                 <div className="flex items-center gap-2">
                   <Sparkles size={13} />
-                  <span>
-                    {def.icon} {def.label}
-                  </span>
+                  <span>{def.icon} {def.label}</span>
                 </div>
               </div>
 
@@ -496,18 +435,11 @@ function QuickReportForm({
                   {f.type === 'select' ? (
                     <select
                       value={fields[f.id] ?? ''}
-                      onChange={e =>
-                        setFields(prev => ({
-                          ...prev,
-                          [f.id]: e.target.value,
-                        }))
-                      }
+                      onChange={e => setFields(prev => ({ ...prev, [f.id]: e.target.value }))}
                       className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                     >
                       {f.options.map(([v, l]) => (
-                        <option key={v} value={v}>
-                          {l}
-                        </option>
+                        <option key={v} value={v}>{l}</option>
                       ))}
                     </select>
                   ) : (
@@ -517,12 +449,7 @@ function QuickReportForm({
                       max={f.max}
                       placeholder={f.placeholder || f.label}
                       value={fields[f.id] ?? ''}
-                      onChange={e =>
-                        setFields(prev => ({
-                          ...prev,
-                          [f.id]: e.target.value,
-                        }))
-                      }
+                      onChange={e => setFields(prev => ({ ...prev, [f.id]: e.target.value }))}
                       className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 placeholder:text-slate-400 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                     />
                   )}
@@ -538,15 +465,9 @@ function QuickReportForm({
           className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-bold text-white shadow-lg shadow-blue-100 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? (
-            <>
-              <Loader2 size={15} className="animate-spin" />
-              Submitting...
-            </>
+            <><Loader2 size={15} className="animate-spin" />Submitting...</>
           ) : (
-            <>
-              Submit Observation
-              <ArrowRight size={15} />
-            </>
+            <>Submit Observation <ArrowRight size={15} /></>
           )}
         </button>
 
@@ -561,12 +482,7 @@ function QuickReportForm({
                   : 'border-red-200 bg-red-50 text-red-700'
               }`}
             >
-              {status.ok ? (
-                <CheckCircle2 size={15} />
-              ) : (
-                <XCircle size={15} />
-              )}
-
+              {status.ok ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
               {status.msg}
             </motion.div>
           )}
@@ -580,19 +496,12 @@ function QuickReportForm({
 /* Detail Panel */
 /* ────────────────────────────────────────────────────────────── */
 
-function DetailPanel({
-  division,
-  data,
-}) {
-  const [briefing, setBriefing] =
-    useState('Loading briefing...')
+function DetailPanel({ division, data }) {
+  const [briefing, setBriefing] = useState('Loading briefing...')
 
   const score = clampScore(data?.score)
-
-  const color =
-    LEVEL_COLORS[data?.risk_level] || '#64748b'
-
-  const risk = getRiskConfig(data?.risk_level)
+  const color = LEVEL_COLORS[data?.risk_level] || '#64748b'
+  const risk  = getRiskConfig(data?.risk_level)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -600,30 +509,19 @@ function DetailPanel({
     async function loadBriefing() {
       try {
         setBriefing('Loading briefing...')
-
-        const res = await fetch(
-          `${API}/risk/${division}`,
-          { signal: controller.signal }
-        )
-
+        const res = await fetch(`${API}/risk/${division}`, { signal: controller.signal })
         if (!res.ok) throw new Error()
-
         const d = await res.json()
-
-        setBriefing(
-          d.worker_briefing || 'No briefing available.'
-        )
+        setBriefing(d.worker_briefing || 'No briefing available.')
       } catch {
         setBriefing(
-          (data?.top_factors || [])
-            .map(f => `• ${f}`)
-            .join('\n') || 'Unable to load briefing.'
+          (data?.top_factors || []).map(f => `• ${f}`).join('\n') ||
+          'Unable to load briefing.'
         )
       }
     }
 
     loadBriefing()
-
     return () => controller.abort()
   }, [division, data?.top_factors])
 
@@ -632,6 +530,7 @@ function DetailPanel({
       {...slideUp}
       className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-100"
     >
+      {/* Division header */}
       <div className={`border-b px-6 py-5 ${risk.bg} ${risk.border}`}>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -642,15 +541,12 @@ function DetailPanel({
               >
                 <ShieldAlert size={20} />
               </div>
-
               <div>
                 <h3 className="text-xl font-black tracking-tight text-slate-900">
                   {division} Division
                 </h3>
-
                 <p className="mt-1 text-sm text-slate-500">
-                  {data?.district_count || 0} districts monitored ·{' '}
-                  {data?.risk_level} risk
+                  {data?.district_count || 0} districts monitored · {data?.risk_level} risk
                 </p>
               </div>
             </div>
@@ -658,12 +554,10 @@ function DetailPanel({
 
           <div className="flex items-center gap-4">
             <Badge level={data?.risk_level} />
-
             <div className="text-right">
               <div className="text-4xl font-black leading-none" style={{ color }}>
                 {score}
               </div>
-
               <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Risk Score
               </div>
@@ -685,15 +579,12 @@ function DetailPanel({
       </div>
 
       <div className="space-y-6 px-6 py-6">
+        {/* AI Worker Briefing */}
         <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
           <div className="flex items-center gap-2 border-b border-emerald-100 px-5 py-4">
             <Brain size={16} className="text-emerald-600" />
-
-            <h4 className="text-sm font-bold text-emerald-700">
-              AI Worker Briefing
-            </h4>
+            <h4 className="text-sm font-bold text-emerald-700">AI Worker Briefing</h4>
           </div>
-
           <div className="px-5 py-5">
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
               {briefing}
@@ -701,6 +592,10 @@ function DetailPanel({
           </div>
         </div>
 
+        {/* ── Per-disease breakdown — renders if data exists ── */}
+        <PerDiseaseBreakdown perDiseaseScores={data?.per_disease_scores} />
+
+        {/* Quick report form */}
         <QuickReportForm division={division} />
       </div>
     </motion.div>
@@ -711,25 +606,13 @@ function DetailPanel({
 /* Main Component */
 /* ────────────────────────────────────────────────────────────── */
 
-export default function RiskMapTab({
-  isActive,
-}) {
-  const [riskData, setRiskData] = useState({})
-
-  const [summary, setSummary] = useState({
-    critical: [],
-    high: [],
-    moderate: [],
-  })
-
-  const [lastUpdated, setLastUpdated] = useState(null)
-
-  const [selectedDiv, setSelectedDiv] = useState(null)
-
-  const [loadError, setLoadError] = useState(false)
-
-  const [loading, setLoading] = useState(true)
-
+export default function RiskMapTab({ isActive }) {
+  const [riskData,     setRiskData]     = useState({})
+  const [summary,      setSummary]      = useState({ critical: [], high: [], moderate: [] })
+  const [lastUpdated,  setLastUpdated]  = useState(null)
+  const [selectedDiv,  setSelectedDiv]  = useState(null)
+  const [loadError,    setLoadError]    = useState(false)
+  const [loading,      setLoading]      = useState(true)
   const pollRef = useRef(null)
 
   const loadRiskMap = useCallback(async (silent = false) => {
@@ -747,14 +630,7 @@ export default function RiskMapTab({
       await alertRes.json()
 
       setRiskData(riskJson.divisions || {})
-      setSummary(
-        riskJson.summary || {
-          critical: [],
-          high: [],
-          moderate: [],
-        }
-      )
-
+      setSummary(riskJson.summary || { critical: [], high: [], moderate: [] })
       setLastUpdated(new Date().toLocaleTimeString())
       setLoadError(false)
     } catch {
@@ -771,20 +647,13 @@ export default function RiskMapTab({
     }
 
     loadRiskMap()
-
-    pollRef.current = setInterval(() => {
-      loadRiskMap(true)
-    }, 30000)
-
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
+    pollRef.current = setInterval(() => loadRiskMap(true), 30000)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [isActive, loadRiskMap])
 
   const sorted = useMemo(() => {
     return Object.entries(riskData).sort(
-      (a, b) =>
-        clampScore(b[1]?.score) - clampScore(a[1]?.score)
+      (a, b) => clampScore(b[1]?.score) - clampScore(a[1]?.score)
     )
   }, [riskData])
 
@@ -802,7 +671,6 @@ export default function RiskMapTab({
             <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
               Bangladesh Risk Map
             </h1>
-
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
               Real-time division-level outbreak intelligence powered by live field reports,
               retraining feedback loops, public health datasets, and AI-assisted surveillance.
@@ -812,15 +680,11 @@ export default function RiskMapTab({
           {lastUpdated && (
             <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
                   Last Updated
                 </p>
-
-                <p className="text-sm font-semibold text-slate-700">
-                  {lastUpdated}
-                </p>
+                <p className="text-sm font-semibold text-slate-700">{lastUpdated}</p>
               </div>
             </div>
           )}
@@ -829,51 +693,23 @@ export default function RiskMapTab({
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Critical"
-          value={summary.critical?.length ?? '–'}
-          color="#dc2626"
-          icon={<ShieldAlert size={18} />}
-        />
-
-        <StatCard
-          label="High Risk"
-          value={summary.high?.length ?? '–'}
-          color="#ea580c"
-          icon={<TrendingUp size={18} />}
-        />
-
-        <StatCard
-          label="Moderate"
-          value={summary.moderate?.length ?? '–'}
-          color="#ca8a04"
-          icon={<Activity size={18} />}
-        />
-
-        <StatCard
-          label="Datasets"
-          value="13"
-          color="#0891b2"
-          icon={<Brain size={18} />}
-        />
+        <StatCard label="Critical"  value={summary.critical?.length ?? '–'} color="#dc2626" icon={<ShieldAlert size={18} />} />
+        <StatCard label="High Risk" value={summary.high?.length ?? '–'}     color="#ea580c" icon={<TrendingUp size={18} />} />
+        <StatCard label="Moderate"  value={summary.moderate?.length ?? '–'} color="#ca8a04" icon={<Activity size={18} />} />
+        <StatCard label="Datasets"  value="13"                               color="#0891b2" icon={<Brain size={18} />} />
       </div>
 
       <AnimatePresence>
         {selectedDiv && riskData[selectedDiv] && (
-          <DetailPanel
-            division={selectedDiv}
-            data={riskData[selectedDiv]}
-          />
+          <DetailPanel division={selectedDiv} data={riskData[selectedDiv]} />
         )}
       </AnimatePresence>
 
+      {/* Division list */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
-            <h3 className="text-sm font-black text-slate-800">
-              Division Risk Scores
-            </h3>
-
+            <h3 className="text-sm font-black text-slate-800">Division Risk Scores</h3>
             <p className="mt-1 text-xs text-slate-400">
               Tap a division to view disease analytics and AI briefing
             </p>
@@ -883,22 +719,15 @@ export default function RiskMapTab({
         <div className="px-6 py-6">
           {loadError && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-6 text-center">
-              <div className="text-sm font-bold text-red-700">
-                Could not load risk data
-              </div>
-              <p className="mt-1 text-xs text-red-500">
-                Is the backend running on port 8000?
-              </p>
+              <div className="text-sm font-bold text-red-700">Could not load risk data</div>
+              <p className="mt-1 text-xs text-red-500">Is the backend running on port 8000?</p>
             </div>
           )}
 
           {loading && !loadError && (
             <div className="space-y-4">
               {[1, 2, 3].map(item => (
-                <div
-                  key={item}
-                  className="h-28 animate-pulse rounded-2xl bg-slate-100"
-                />
+                <div key={item} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
               ))}
             </div>
           )}
@@ -917,9 +746,7 @@ export default function RiskMapTab({
                 name={name}
                 data={data}
                 selected={selectedDiv === name}
-                onClick={() =>
-                  setSelectedDiv(prev => (prev === name ? null : name))
-                }
+                onClick={() => setSelectedDiv(prev => (prev === name ? null : name))}
               />
             ))}
           </div>
