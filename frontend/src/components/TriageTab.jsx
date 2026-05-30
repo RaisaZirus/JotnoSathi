@@ -648,7 +648,7 @@ export default function TriageTab({
       )
     ) {
       alert(
-        'Voice input is not supported on this browser.'
+        'Voice input is not supported on this browser. Please use Chrome.'
       )
       return
     }
@@ -659,29 +659,38 @@ export default function TriageTab({
 
     const recognition = new SR()
 
-    recognition.lang =
-      lang === 'bn'
-        ? 'bn-BD'
-        : 'en-US'
+    // Always use Bangla recognition — all users are Bangladeshi health workers
+    recognition.lang = 'bn-BD'
 
-    recognition.interimResults =
-      false
+    // Show text live as the user speaks
+    recognition.interimResults = true
+    recognition.continuous = false
 
     setListening(true)
 
-    recognition.onresult = e => {
-      setSymptoms(
-        e.results[0][0].transcript
-      )
+    const base = symptoms  // save existing text to append to
 
+    recognition.onresult = e => {
+      let interim = ''
+      let final = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript
+        } else {
+          interim += e.results[i][0].transcript
+        }
+      }
+      // Show live interim text, replace with final on completion
+      setSymptoms(base + (final || interim))
+      if (final) setListening(false)
+    }
+
+    recognition.onerror = (e) => {
+      console.error('Voice error:', e.error)
       setListening(false)
     }
 
-    recognition.onerror = () =>
-      setListening(false)
-
-    recognition.onend = () =>
-      setListening(false)
+    recognition.onend = () => setListening(false)
 
     recognition.start()
   }
