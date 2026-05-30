@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom'
 import { API } from './constants'
+import jotnoLogo from './jotno.png'
 import Login    from './Login'
 import Landing  from './Landing'
 import TriageTab          from './components/TriageTab'
@@ -75,19 +76,11 @@ const CSS = `
   }
   .logo-mark {
     width: 34px; height: 34px; flex-shrink: 0;
-    background: linear-gradient(145deg, var(--blue-600), var(--blue-900));
     border-radius: var(--radius-md);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(26,109,181,0.35);
-    position: relative;
     overflow: hidden;
   }
-  .logo-mark::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-  }
-  .logo-mark svg { width: 18px; height: 18px; color: white; position: relative; z-index: 1; }
+  .logo-mark img { width: 34px; height: 34px; object-fit: contain; }
   .logo-text-wrap { overflow: hidden; white-space: nowrap; }
   .logo-name { font-size: 15px; font-weight: 600; color: var(--text-1); letter-spacing: -0.2px; }
   .logo-sub  { font-size: 10.5px; color: var(--text-3); font-weight: 400; margin-top: 1px; }
@@ -401,7 +394,7 @@ function Sidebar({ collapsed, setCollapsed, isOnline, onLogout }) {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-mark">
-          <HeartPlusIcon style={{ width: 18, height: 18 }} />
+          <img src={jotnoLogo} alt="JotnoSathi" />
         </div>
         {!collapsed && (
           <div className="logo-text-wrap">

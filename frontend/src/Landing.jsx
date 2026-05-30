@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import jotnoLogo from './jotno.png'
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -63,11 +64,10 @@ body {
 }
 .land-nav-mark {
   width: 36px; height: 36px;
-  background: linear-gradient(145deg, #0F766E, #0d5c56);
   border-radius: 10px;
+  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 2px 12px rgba(15,118,110,0.5);
-  font-size: 18px;
 }
 .land-nav-name {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -346,7 +346,9 @@ export default function Landing({ onGetStarted, onLogin }) {
         {/* Nav */}
         <nav className="land-nav">
           <div className="land-nav-logo">
-            <div className="land-nav-mark">🏥</div>
+            <div className="land-nav-mark">
+              <img src={jotnoLogo} alt="JotnoSathi" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+            </div>
             <div>
               <div className="land-nav-name">JotnoSathi</div>
               <div className="land-nav-sub">AI Health Assistant</div>
@@ -359,7 +361,8 @@ export default function Landing({ onGetStarted, onLogin }) {
         <section className="land-hero">
           <div className="land-pill">
             <span className="land-pill-dot" />
-            Live · Infinity AI BuildFest 2026
+            <img src={jotnoLogo} alt="JotnoSathi" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            Live · JotnoSathi
           </div>
 
           <h1 className="land-headline">
@@ -462,7 +465,10 @@ export default function Landing({ onGetStarted, onLogin }) {
 
       {/* Footer */}
       <footer className="land-footer">
-        <span className="land-footer-left">© 2026 JotnoSathi · Infinity AI BuildFest · HealthTech Domain</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src={jotnoLogo} alt="JotnoSathi" style={{ width: 28, height: 28, objectFit: 'contain', borderRadius: 7 }} />
+          <span className="land-footer-left">© 2026 JotnoSathi · Infinity AI BuildFest · HealthTech Domain</span>
+        </div>
         <span className="land-footer-right">WHO · HDX · DHS Bangladesh · Kaggle · 13 datasets</span>
       </footer>
     </>
