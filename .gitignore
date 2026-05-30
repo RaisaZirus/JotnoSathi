@@ -2,7 +2,6 @@ venv/
 __pycache__/
 *.pyc
 *.pkl
-backend/rag/db/
 risk_model/data/
 risk_model/queues/
 risk_model/trained/
