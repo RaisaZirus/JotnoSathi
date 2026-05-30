@@ -1,4 +1,4 @@
-export const API = 'https://jotnosathi-b.onrender.com'
+export const API = 'https://jotnosathi-backe.onrender.com'
 //export const API = 'http://127.0.0.1:8000'
 // export const API = 'http://10.67.136.45:8000' // hotspot — uncomment for demo
 
