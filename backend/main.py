@@ -16,11 +16,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Auth ──────────────────────────────────────────────────────────────────────
+from backend.auth.models import init_db
+from backend.auth.routes import router as auth_router
+from backend.auth.utils import hash_password
+
+init_db()
+app.include_router(auth_router)
+
 # ── Startup ───────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 def startup_event():
     initialize_trained_scores()
     print("✅ Trained scores initialised")
+
+    # Auto-seed users if database is empty
+    from backend.auth.models import SessionLocal, User
+    db = SessionLocal()
+    if db.query(User).count() == 0:
+        users = [
+            User(username="raisa",   hashed_password=hash_password("test123"), division="Dhaka",      role="admin"),
+            User(username="worker1", hashed_password=hash_password("test123"), division="Rajshahi",   role="worker"),
+            User(username="worker2", hashed_password=hash_password("test123"), division="Mymensingh", role="worker"),
+        ]
+        db.add_all(users)
+        db.commit()
+        print("✅ Users seeded")
+    db.close()
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _HERE               = os.path.dirname(__file__)
