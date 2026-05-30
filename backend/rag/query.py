@@ -1,6 +1,8 @@
 import os
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
-from langchain_community.vectorstores import Chroma
+import json
+import math
+import re
+from collections import Counter
 from groq import Groq
 
 # Load .env if present (for local dev)
@@ -10,24 +12,86 @@ try:
 except ImportError:
     pass
 
-# ── Lazy singletons ──────────────────────────────────────────────────────────
+# ── Lazy singletons ───────────────────────────────────────────────────────────
 _groq_client = None
-_db           = None   # ChromaDB loaded on first triage request
-_embeddings   = None   # HuggingFace model loaded on first triage request
+_docs        = None   # WHO document chunks loaded from docs.json
+_tfidf_index = None   # TF-IDF index built on first request
 
 def get_groq_client():
     global _groq_client
     if _groq_client is None:
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GROQ_API_KEY not set. Add it to your .env file.")
+            raise ValueError("GROQ_API_KEY not set.")
         _groq_client = Groq(api_key=api_key)
     return _groq_client
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
-# ── Disease keyword router ────────────────────────────────────────────────────
-# IMPORTANT: Keywords here are for ROUTING only, not for limiting RAG answers.
+# ── TF-IDF retrieval ────────────────────────────────────────────────────────
+
+def _tokenize(text):
+    return re.findall(r'[a-zA-Z\u0980-\u09FF]+', text.lower())
+
+def _build_tfidf(docs):
+    """Build TF-IDF index from list of document texts."""
+    N = len(docs)
+    df = Counter()
+    tokenized = []
+    for doc in docs:
+        tokens = set(_tokenize(doc["text"]))
+        tokenized.append(tokens)
+        for t in tokens:
+            df[t] += 1
+
+    idf = {t: math.log(N / (1 + df[t])) for t in df}
+    return tokenized, idf, N
+
+def _tfidf_score(query_tokens, doc_tokens, idf):
+    """BM25-style score between query and document."""
+    score = 0.0
+    for t in query_tokens:
+        if t in doc_tokens and t in idf:
+            score += idf[t]
+    return score
+
+def get_retriever(docs_path: str = "backend/rag/docs.json"):
+    """Lazy loader — builds TF-IDF index from docs.json on first call."""
+    global _docs, _tfidf_index
+    if _docs is None:
+        print("🔄 Loading WHO document index...")
+        if not os.path.exists(docs_path):
+            print(f"⚠️  {docs_path} not found — RAG disabled, using prompts only")
+            _docs = []
+            _tfidf_index = ([], {}, 0)
+            return _docs, _tfidf_index
+        with open(docs_path, "r", encoding="utf-8") as f:
+            _docs = json.load(f)
+        _tfidf_index = _build_tfidf(_docs)
+        print(f"✅ WHO index ready — {len(_docs)} chunks")
+    return _docs, _tfidf_index
+
+def retrieve(question: str, k: int = 3) -> str:
+    """Retrieve top-k relevant WHO protocol chunks using TF-IDF."""
+    docs, (tokenized, idf, N) = get_retriever()
+    if not docs:
+        return ""
+    query_tokens = set(_tokenize(question))
+    scores = [
+        (i, _tfidf_score(query_tokens, doc_tokens, idf))
+        for i, doc_tokens in enumerate(tokenized)
+    ]
+    top_k = sorted(scores, key=lambda x: x[1], reverse=True)[:k]
+    chunks = [docs[i]["text"] for i, score in top_k if score > 0]
+    return "\n\n".join(chunks) if chunks else ""
+
+def load_rag_chain(persist_dir: str = "backend/rag/db"):
+    """Kept for API compatibility with main.py."""
+    print(f"✅ Groq + TF-IDF RAG ready — model: {GROQ_MODEL}")
+    return None, None
+
+
+# ── Disease keyword router ───────────────────────────────────────────────────
 DISEASE_KEYWORDS = {
     "dengue": [
         "dengue", "ডেঙ্গু", "dengue fever",
@@ -82,7 +146,6 @@ DISEASE_KEYWORDS = {
     ],
 }
 
-# ── Per-disease prompt fragments ──────────────────────────────────────────────
 DISEASE_PROMPTS = {
     "dengue": """
 DISEASE DOMAIN: Dengue Fever
@@ -187,7 +250,6 @@ REASON:
 """,
 }
 
-# ── Report type mapping ───────────────────────────────────────────────────────
 DISEASE_REPORT_TYPE = {
     "dengue":   "outbreak",
     "measles":  "outbreak",
@@ -196,7 +258,6 @@ DISEASE_REPORT_TYPE = {
     "bp":       "registry",
     "general":  "registry",
 }
-
 
 def detect_disease(text: str) -> str:
     """
@@ -211,59 +272,27 @@ def detect_disease(text: str) -> str:
     return "general"
 
 
-def get_db(persist_dir: str = "backend/rag/db"):
-    """
-    Lazy loader — uses HuggingFace Inference API for embeddings.
-    Runs on HuggingFace servers instead of locally — zero RAM on Render.
-    """
-    global _db, _embeddings
-    if _db is None:
-        print("🔄 Connecting to HuggingFace embedding API...")
-        hf_token = os.environ.get("HF_TOKEN", "")
-        _embeddings = HuggingFaceInferenceAPIEmbeddings(
-            api_key=hf_token,
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
-        _db = Chroma(persist_directory=persist_dir, embedding_function=_embeddings)
-        print("✅ RAG db ready")
-    return _db
-
-
-def load_rag_chain(persist_dir: str = "backend/rag/db"):
-    """
-    Returns (None, None) — db now loads lazily on first triage call.
-    Kept for API compatibility with main.py.
-    """
-    print(f"✅ Groq client ready — model: {GROQ_MODEL}")
-    return None, None   # db loads lazily via get_db()
-
-
 def query(question: str, db=None, llm=None, disease: str = None):
     """
-    Run RAG query with disease-aware prompt via Groq API.
-    llm parameter kept for API compatibility but ignored — Groq is used directly.
-    Returns dict: {response, disease, report_type}
+    Run RAG query with TF-IDF retrieval + Groq generation.
+    db/llm params kept for API compatibility but unused.
     """
-    if db is None:
-        db = get_db()   # lazy load on first request
-
     if disease is None:
         disease = detect_disease(question)
 
-    # Retrieve relevant protocol chunks from ChromaDB
-    docs    = db.similarity_search(question, k=3)
-    context = "\n\n".join([doc.page_content for doc in docs])
+    # Retrieve relevant WHO protocol chunks via TF-IDF
+    context = retrieve(question, k=3)
 
     disease_fragment = DISEASE_PROMPTS.get(disease, DISEASE_PROMPTS["general"])
 
     system_prompt = """You are JotnoSathi — a clinical decision support assistant for Bangladeshi community health workers (Shasthya Shebikas).
 You assist, you do NOT diagnose. Always recommend referral when in doubt.
-Use ONLY the provided WHO/DGHS protocol context to guide your response.
+Use the provided WHO/DGHS protocol context to guide your response.
 Respond in simple, clear language a health worker can act on immediately.
 তুমি একজন সহায়তাকারী, রোগ নির্ণয় করছ না। (You are assisting, not diagnosing.)
 Keep your response concise and structured — under 200 words."""
 
-    user_prompt = f"""Protocol Context:
+    user_prompt = f"""WHO Protocol Context:
 {context}
 
 Patient Situation:
@@ -278,7 +307,7 @@ Patient Situation:
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
-        temperature=0.2,      # low temp for clinical consistency
+        temperature=0.2,
         max_tokens=400,
         top_p=0.9,
     )
@@ -290,32 +319,3 @@ Patient Situation:
         "disease":     disease,
         "report_type": DISEASE_REPORT_TYPE.get(disease, "registry"),
     }
-
-
-if __name__ == "__main__":
-    print("🔄 Loading RAG chain + Groq client...")
-    db, _ = load_rag_chain()
-    print("✅ Ready!\n")
-
-    test_cases = [
-        ("জ্বর, ফুসকুড়ি, কাশি, টিকা নেই",                    "measles"),
-        ("গর্ভবতী, ৩২ সপ্তাহ, রক্তচাপ ১৬০/১১০, মাথাব্যথা",   "maternal"),
-        ("fasting glucose 8.2 mmol/L, excessive thirst",        "diabetes"),
-        ("bp 185/120, severe headache, chest pain",             "bp"),
-        ("high fever day 5, bone pain, eye pain, platelet low", "dengue"),
-        ("fever rash cough unvaccinated child",                 "measles"),
-    ]
-
-    print("── Routing test (no API call) ──")
-    all_pass = True
-    for text, expected in test_cases:
-        detected = detect_disease(text)
-        status   = "✅" if detected == expected else "❌"
-        if detected != expected: all_pass = False
-        print(f"{status} Expected={expected:<10} Got={detected:<10} | {text[:50]}")
-    print(f"\n{'✅ All routing correct!' if all_pass else '❌ Some routes failed.'}\n")
-
-    print("── Live Groq test ──")
-    result = query("fever day 5, bone pain, eye pain, platelet low", db)
-    print(f"Disease: {result['disease'].upper()}")
-    print(f"Response:\n{result['response']}")
