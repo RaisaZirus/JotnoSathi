@@ -34,6 +34,8 @@ import {
   LEVEL_COLORS,
 } from '../constants'
 
+import { cacheSet, cacheGet } from '../offlineCache'
+
 import Badge from './Badge'
 import { parseFieldValue } from './DiseaseFields'
 
@@ -633,8 +635,17 @@ export default function RiskMapTab({ isActive }) {
       setSummary(riskJson.summary || { critical: [], high: [], moderate: [] })
       setLastUpdated(new Date().toLocaleTimeString())
       setLoadError(false)
+      cacheSet('risk-all', riskJson)
     } catch {
-      if (!silent) setLoadError(true)
+      const c = cacheGet('risk-all')
+      if (c) {
+        setRiskData(c.data.divisions || {})
+        setSummary(c.data.summary || { critical: [], high: [], moderate: [] })
+        setLastUpdated('cached · ' + new Date(c.savedAt).toLocaleTimeString())
+        setLoadError(false)
+      } else if (!silent) {
+        setLoadError(true)
+      }
     } finally {
       setLoading(false)
     }

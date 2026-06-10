@@ -32,6 +32,8 @@ import {
 import DiseaseFields, {
   parseFieldValue,
 } from './DiseaseFields'
+import { queueSubmission, notifyQueueChanged } from '../offlineQueue'
+import { cacheSet, cacheGet } from '../offlineCache'
 
 /* ─────────────────────────────────────────────────────── */
 /* Styles                                                  */
@@ -859,8 +861,13 @@ export default function ReportsTab() {
   const loadQueue = useCallback(async () => {
     try {
       const r = await fetch(`${API}/queue-status`)
-      setQueueData(await r.json())
-    } catch {}
+      const d = await r.json()
+      setQueueData(d)
+      cacheSet('queue-status', d)
+    } catch {
+      const c = cacheGet('queue-status')
+      if (c) setQueueData(c.data)
+    }
   }, [])
 
   const loadRegistry = useCallback(async () => {
@@ -868,7 +875,11 @@ export default function ReportsTab() {
       const r = await fetch(`${API}/case-registry`)
       const d = await r.json()
       setRegistry(d.registry)
-    } catch {}
+      cacheSet('case-registry', d.registry)
+    } catch {
+      const c = cacheGet('case-registry')
+      if (c) setRegistry(c.data)
+    }
   }, [])
 
   useEffect(() => {
@@ -949,10 +960,20 @@ export default function ReportsTab() {
       loadQueue()
       loadRegistry()
     } catch {
-      setStatus({
-        ok: false,
-        msg: 'Submission failed. Please try again.',
-      })
+      try {
+        await queueSubmission(payload, '/field-report')
+        notifyQueueChanged()
+        window.dispatchEvent(new Event('jotno-backend-down'))
+        setStatus({
+          ok: true,
+          msg: 'No connection — report saved on this device and will sync automatically.',
+        })
+      } catch {
+        setStatus({
+          ok: false,
+          msg: 'Submission failed. Please try again.',
+        })
+      }
     } finally {
       setSubmitting(false)
     }
@@ -1079,11 +1100,10 @@ export default function ReportsTab() {
                     <button
                       key={item.id}
                       type="button"
-                      className={`rt-quick-btn${
-                        disease === item.id
+                      className={`rt-quick-btn${disease === item.id
                           ? ' active'
                           : ''
-                      }`}
+                        }`}
                       onClick={() =>
                         handleDiseaseChange(item.id)
                       }
@@ -1140,23 +1160,23 @@ export default function ReportsTab() {
                     className="rt-notice"
                     style={
                       def.report_type ===
-                      'outbreak'
+                        'outbreak'
                         ? {
-                            background:
-                              '#FFF7ED',
-                            borderColor:
-                              '#FCD34D',
-                            color:
-                              'var(--warn)',
-                          }
+                          background:
+                            '#FFF7ED',
+                          borderColor:
+                            '#FCD34D',
+                          color:
+                            'var(--warn)',
+                        }
                         : {
-                            background:
-                              '#EFF6FF',
-                            borderColor:
-                              '#BFDBFE',
-                            color:
-                              'var(--accent)',
-                          }
+                          background:
+                            '#EFF6FF',
+                          borderColor:
+                            '#BFDBFE',
+                          color:
+                            'var(--accent)',
+                        }
                     }
                   >
                     <AlertCircle
@@ -1176,7 +1196,7 @@ export default function ReportsTab() {
                       >
                         {def.icon}{' '}
                         {def.report_type ===
-                        'outbreak'
+                          'outbreak'
                           ? 'Outbreak Monitoring'
                           : 'Registry Tracking'}
                       </div>
@@ -1187,7 +1207,7 @@ export default function ReportsTab() {
                         }}
                       >
                         {def.report_type ===
-                        'outbreak'
+                          'outbreak'
                           ? 'This report contributes to outbreak surveillance and automatic AI retraining workflows.'
                           : 'This report contributes to long-term chronic disease registry analytics.'}
                       </div>
@@ -1320,21 +1340,21 @@ export default function ReportsTab() {
                       style={
                         status.ok
                           ? {
-                              background:
-                                '#ECFDF5',
-                              borderColor:
-                                '#86EFAC',
-                              color:
-                                'var(--ok)',
-                            }
+                            background:
+                              '#ECFDF5',
+                            borderColor:
+                              '#86EFAC',
+                            color:
+                              'var(--ok)',
+                          }
                           : {
-                              background:
-                                '#FEF2F2',
-                              borderColor:
-                                '#FCA5A5',
-                              color:
-                                'var(--danger)',
-                            }
+                            background:
+                              '#FEF2F2',
+                            borderColor:
+                              '#FCA5A5',
+                            color:
+                              'var(--danger)',
+                          }
                       }
                     >
                       {status.ok ? (

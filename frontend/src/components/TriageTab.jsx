@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { API, DIVISIONS, DISEASE_FIELDS } from '../constants'
 import Badge from './Badge'
+import { queueTriage, notifyQueueChanged } from '../offlineQueue'
+import {
+  preloadProtocolIndex,
+  retrieveOffline,
+  detectDiseaseOffline,
+} from '../offlineProtocols'
 
 const DIVISION_BN = {
   Dhaka: 'ঢাকা',
@@ -517,6 +523,38 @@ const CSS = `
   white-space:pre-wrap;
 }
 
+/* OFFLINE PROTOCOL EXCERPTS */
+
+.protocol-list{
+  margin-top:18px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.protocol-chunk{
+  background:#F8FAFC;
+  border:1px solid rgba(148,163,184,0.14);
+  border-left:4px solid #0F766E;
+  border-radius:16px;
+  padding:16px 18px;
+}
+
+.protocol-source{
+  font-size:11px;
+  font-weight:700;
+  color:#0F766E;
+  margin-bottom:8px;
+  word-break:break-all;
+}
+
+.protocol-text{
+  font-size:13.5px;
+  line-height:1.8;
+  color:#334155;
+  white-space:pre-wrap;
+}
+
 .queue{
   margin-top:22px;
   padding:20px;
@@ -638,6 +676,15 @@ export default function TriageTab({
   const [selectedDisease, setSelectedDisease] =
     useState('')
 
+  const [queuedNotice, setQueuedNotice] =
+    useState(null)
+
+  // Download + index the WHO protocol file in the background while
+  // we're (probably) still online, so offline lookup is instant later.
+  useEffect(() => {
+    preloadProtocolIndex()
+  }, [])
+
   function startVoice() {
     if (
       !(
@@ -705,6 +752,14 @@ export default function TriageTab({
 
     setLoading(true)
     setResult(null)
+    setQueuedNotice(null)
+
+    const payload = {
+      symptoms,
+      language: lang,
+      division,
+      worker_id: 'shebika_field',
+    }
 
     try {
       const res = await fetch(
@@ -717,15 +772,13 @@ export default function TriageTab({
               'application/json',
           },
 
-          body: JSON.stringify({
-            symptoms,
-            language: lang,
-            division,
-            worker_id:
-              'shebika_field',
-          }),
+          body: JSON.stringify(payload),
         }
       )
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`)
+      }
 
       const data =
         await res.json()
@@ -750,9 +803,46 @@ export default function TriageTab({
           data.raw_response,
       })
     } catch {
-      alert(
-        'Connection error. Please check if backend is running.'
-      )
+      // Backend unreachable → save the triage offline instead of losing it
+      try {
+        await queueTriage(payload)
+        notifyQueueChanged()
+
+        // On-device protocol lookup — same TF-IDF as the backend,
+        // returns the actual WHO protocol excerpts, no AI generation.
+        let detected  = 'general'
+        let protocols = []
+        try {
+          detected  = detectDiseaseOffline(symptoms)
+          protocols = await retrieveOffline(symptoms, 3)
+        } catch {
+          // protocol file not cached yet — card still shows without excerpts
+        }
+
+        setQueuedNotice({
+          symptoms: symptoms.substring(0, 80),
+          division,
+          disease: detected,
+          protocols,
+        })
+
+        addToLog({
+          time: new Date().toLocaleTimeString(),
+          symptoms:
+            symptoms.substring(0, 60) + '...',
+          disease: detected,
+          risk: 'QUEUED',
+          response:
+            'Saved offline — will be submitted automatically when the server is reachable.',
+        })
+
+        // Tell App.jsx the backend is down so the status UI flips immediately
+        window.dispatchEvent(new Event('jotno-backend-down'))
+      } catch {
+        alert(
+          'Connection error, and offline save failed. Please try again.'
+        )
+      }
     } finally {
       setLoading(false)
     }
@@ -779,6 +869,12 @@ export default function TriageTab({
       ? DISEASE_FIELDS[
           result.disease_detected
         ]
+      : null
+
+  const queuedDiseaseConfig =
+    queuedNotice?.disease &&
+    queuedNotice.disease !== 'general'
+      ? DISEASE_FIELDS[queuedNotice.disease]
       : null
 
   return (
@@ -1161,6 +1257,120 @@ export default function TriageTab({
               outbreak patterns, and
               clinical risk...
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUEUED OFFLINE NOTICE + PROTOCOL LOOKUP */}
+
+      {queuedNotice && !loading && (
+        <div className="result-card">
+          <div
+            className="result-head"
+            style={{
+              background:
+                'linear-gradient(135deg,#FFF7ED,#F8FAFC)',
+            }}
+          >
+            <div>
+              <div className="result-title">
+                📦 Saved Offline
+              </div>
+
+              <div className="result-sub">
+                No connection right now — this
+                triage was saved on this device
+                and will be submitted
+                automatically when the server is
+                reachable again.
+              </div>
+
+              <div className="result-tags">
+                <div className="tag outbreak">
+                  ⏳ Pending Sync
+                </div>
+
+                {queuedDiseaseConfig && (
+                  <div className="tag disease">
+                    {queuedDiseaseConfig.icon}{' '}
+                    {queuedNotice.disease.toUpperCase()}
+                  </div>
+                )}
+
+                {queuedNotice.division !==
+                  'Unknown' && (
+                  <div className="tag registry">
+                    📍 {queuedNotice.division}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="result-body">
+            <div className="response">
+              {queuedNotice.symptoms}
+              {queuedNotice.symptoms.length >= 80
+                ? '…'
+                : ''}
+            </div>
+
+            {queuedNotice.protocols &&
+              queuedNotice.protocols.length >
+                0 && (
+                <div className="protocol-list">
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: '#0F766E',
+                      letterSpacing: '0.8px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    📖 Offline WHO Protocol
+                    Reference
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: '#64748B',
+                      marginTop: -6,
+                    }}
+                  >
+                    Matched on this device from
+                    WHO/MSF guidelines — exact
+                    protocol text, not
+                    AI-generated.
+                  </div>
+
+                  {queuedNotice.protocols.map(
+                    (p, i) => (
+                      <div
+                        key={i}
+                        className="protocol-chunk"
+                      >
+                        <div className="protocol-source">
+                          {p.source}
+                          {p.page != null
+                            ? ` · page ${p.page}`
+                            : ''}
+                        </div>
+
+                        <div className="protocol-text">
+                          {p.text.length > 700
+                            ? p.text.substring(
+                                0,
+                                700
+                              ) + '…'
+                            : p.text}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
           </div>
         </div>
       )}
