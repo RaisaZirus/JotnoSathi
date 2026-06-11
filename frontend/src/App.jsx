@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom'
 import { API } from './constants'
+import { queueCount, syncQueue } from './offlineQueue'
 import jotnoLogo from './jotno.png'
 import Login    from './Login'
 import Landing  from './Landing'
@@ -259,6 +260,12 @@ const CSS = `
   /* ── Offline banner ───────────────────────────────────────────── */
   .offline-banner {
     background: var(--orange);
+    color: white; text-align: center;
+    padding: 7px 16px; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.2px; flex-shrink: 0;
+  }
+  .sync-banner {
+    background: var(--blue-600);
     color: white; text-align: center;
     padding: 7px 16px; font-size: 12px; font-weight: 600;
     letter-spacing: 0.2px; flex-shrink: 0;
@@ -590,18 +597,36 @@ function Footer() {
   )
 }
 
-/* ── Offline banner ─────────────────────────────────────────────── */
-function OfflineBanner({ isOnline }) {
-  if (isOnline) return null
+/* ── Offline / sync banner ──────────────────────────────────────── */
+function OfflineBanner({ browserOnline, backendUp, pendingSync }) {
+  // Everything healthy
+  if (browserOnline && backendUp && pendingSync === 0) return null
+
+  // Healthy connection but queued items are being synced
+  if (browserOnline && backendUp && pendingSync > 0) {
+    return (
+      <div className="sync-banner">
+        🔄 Syncing {pendingSync} saved triage{pendingSync > 1 ? 's' : ''}…
+      </div>
+    )
+  }
+
+  const queuedTxt =
+    pendingSync > 0
+      ? ` · ${pendingSync} triage${pendingSync > 1 ? 's' : ''} saved for sync`
+      : ''
+
   return (
     <div className="offline-banner">
-      ⚠️ Offline Mode — Using cached data
+      {!browserOnline
+        ? `⚠️ Offline Mode — Using cached data${queuedTxt}`
+        : `⚠️ Server unreachable — reconnecting in the background${queuedTxt}`}
     </div>
   )
 }
 
 /* ── Main layout ────────────────────────────────────────────────── */
-function AppLayout({ isOnline, alerts, sessionLog, addToLog, onLogout }) {
+function AppLayout({ isOnline, browserOnline, backendUp, pendingSync, alerts, sessionLog, addToLog, onLogout }) {
   const [collapsed, setCollapsed] = useState(false)
   const location   = useLocation()
   const isRiskMap  = location.pathname === '/riskmap'
@@ -612,7 +637,7 @@ function AppLayout({ isOnline, alerts, sessionLog, addToLog, onLogout }) {
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} isOnline={isOnline} onLogout={onLogout} />
 
       <div className="content-wrap">
-        <OfflineBanner isOnline={isOnline} />
+        <OfflineBanner browserOnline={browserOnline} backendUp={backendUp} pendingSync={pendingSync} />
         <MobileHeader isOnline={isOnline} alerts={alerts} />
 
         <div style={{ display: 'none' }} className="md-show">
@@ -647,6 +672,8 @@ export default function App() {
     localStorage.getItem('token') ? 'app' : 'landing'
   )
   const [isOnline, setIsOnline]     = useState(navigator.onLine)
+  const [backendUp, setBackendUp]   = useState(true)
+  const [pendingSync, setPendingSync] = useState(0)
   const [alerts, setAlerts]         = useState([])
   const [sessionLog, setSessionLog] = useState(() =>
     JSON.parse(localStorage.getItem('jotnosathi_log') || '[]')
@@ -671,7 +698,10 @@ export default function App() {
 
   useEffect(() => {
     const on  = () => setIsOnline(true)
-    const off = () => setIsOnline(false)
+    const off = () => {
+      setIsOnline(false)
+      setBackendUp(false) // no network → backend definitely unreachable
+    }
     window.addEventListener('online',  on)
     window.addEventListener('offline', off)
     return () => {
@@ -682,16 +712,67 @@ export default function App() {
 
   useEffect(() => {
     if (screen !== 'app') return
+
     fetch(`${API}/alerts`)
       .then(r => r.json())
       .then(d => { if (d.alerts?.length) setAlerts(d.alerts) })
       .catch(() => {})
 
-    // Keep Render backend alive — pings /health every 10 min to prevent spin-down
-    const keepAlive = setInterval(() => {
-      fetch(`${API}/health`).catch(() => {})
-    }, 10 * 60 * 1000)
-    return () => clearInterval(keepAlive)
+    let cancelled = false
+
+    async function refreshPendingCount() {
+      try {
+        const n = await queueCount()
+        if (!cancelled) setPendingSync(n)
+      } catch { /* IndexedDB unavailable — ignore */ }
+    }
+
+    // Backend reachability check — doubles as the Render keep-alive ping.
+    // Runs immediately, then every 2 minutes, and again when the browser
+    // regains connectivity. 8s timeout so a sleeping backend reads as down.
+    // When the backend is reachable, any queued offline triages are synced.
+    async function checkBackend() {
+      if (!navigator.onLine) { setBackendUp(false); return }
+      try {
+        const ctrl  = new AbortController()
+        const timer = setTimeout(() => ctrl.abort(), 8000)
+        const res   = await fetch(`${API}/health`, { signal: ctrl.signal })
+        clearTimeout(timer)
+        if (cancelled) return
+        setBackendUp(res.ok)
+
+        if (res.ok) {
+          const n = await queueCount()
+          if (n > 0) {
+            setPendingSync(n) // show the "Syncing…" banner
+            const { remaining } = await syncQueue(API)
+            if (!cancelled) setPendingSync(remaining)
+          } else if (!cancelled) {
+            setPendingSync(0)
+          }
+        }
+      } catch {
+        if (!cancelled) setBackendUp(false)
+      }
+    }
+
+    const onQueueUpdated = () => refreshPendingCount()
+    const onBackendDown  = () => setBackendUp(false)
+
+    refreshPendingCount()
+    checkBackend()
+    const interval = setInterval(checkBackend, 2 * 60 * 1000)
+    window.addEventListener('online', checkBackend)
+    window.addEventListener('jotno-queue-updated', onQueueUpdated)
+    window.addEventListener('jotno-backend-down', onBackendDown)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+      window.removeEventListener('online', checkBackend)
+      window.removeEventListener('jotno-queue-updated', onQueueUpdated)
+      window.removeEventListener('jotno-backend-down', onBackendDown)
+    }
   }, [screen])
 
   function addToLog(entry) {
@@ -720,6 +801,8 @@ export default function App() {
     )
   }
 
+  const effectiveOnline = isOnline && backendUp
+
   return (
     <>
       <style>{CSS}</style>
@@ -730,7 +813,10 @@ export default function App() {
 
       <BrowserRouter>
         <AppLayout
-          isOnline={isOnline}
+          isOnline={effectiveOnline}
+          browserOnline={isOnline}
+          backendUp={backendUp}
+          pendingSync={pendingSync}
           alerts={alerts}
           sessionLog={sessionLog}
           addToLog={addToLog}
