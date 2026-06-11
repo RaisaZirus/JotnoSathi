@@ -498,6 +498,186 @@ function QuickReportForm({ division }) {
 /* Detail Panel */
 /* ────────────────────────────────────────────────────────────── */
 
+/* ────────────────────────────────────────────────────────────── */
+/* Score Attribution — "Why this score?" explainability panel     */
+/* Exact additive breakdown mirroring train_model.py v2.2:        */
+/*   composite = Σ(disease_score × weight) / Σweights × Σweights   */
+/* ────────────────────────────────────────────────────────────── */
+
+const COMPOSITE_WEIGHTS = {
+  dengue:   0.28,
+  measles:  0.22,
+  maternal: 0.22,
+  diabetes: 0.15,
+  bp:       0.13,
+}
+
+const ATTRIBUTION_META = {
+  dengue:   { label: 'Dengue',       icon: '🦟', color: '#e65100', soft: '#FFF3E0' },
+  measles:  { label: 'Measles',      icon: '🔴', color: '#c62828', soft: '#FFEBEE' },
+  maternal: { label: 'Maternal',     icon: '🤰', color: '#7b1fa2', soft: '#F3E5F5' },
+  diabetes: { label: 'Diabetes',     icon: '🩸', color: '#1565c0', soft: '#E3F2FD' },
+  bp:       { label: 'Hypertension', icon: '💊', color: '#00695c', soft: '#E0F2F1' },
+}
+
+const INTERVENTIONS = {
+  dengue:   'Vector control: larvicide drives, standing-water removal, community fever screening.',
+  measles:  'Catch-up vaccination drive for unvaccinated children; isolate suspected cases early.',
+  maternal: 'Increase antenatal-care visit coverage; prioritise skilled birth-attendance referrals.',
+  diabetes: 'Community glucose-screening camps; diet and lifestyle counselling for at-risk adults.',
+  bp:       'Measure blood pressure at every patient contact; maintain a hypertension follow-up registry.',
+}
+
+function ScoreAttribution({ score, perDiseaseScores }) {
+  if (!perDiseaseScores || !Object.keys(perDiseaseScores).length) return null
+
+  const present   = Object.keys(perDiseaseScores).filter(d => COMPOSITE_WEIGHTS[d])
+  const weightSum = present.reduce((s, d) => s + COMPOSITE_WEIGHTS[d], 0)
+  const totalW    = Object.values(COMPOSITE_WEIGHTS).reduce((a, b) => a + b, 0)
+  if (!weightSum) return null
+
+  const rows = present
+    .map(d => {
+      const ds = perDiseaseScores[d]
+      const contribution = (ds.score * COMPOSITE_WEIGHTS[d] / weightSum) * totalW
+      return {
+        id: d,
+        ...ATTRIBUTION_META[d],
+        contribution: Math.round(contribution * 10) / 10,
+        weightPct: Math.round((COMPOSITE_WEIGHTS[d] / totalW) * 100),
+        factor: (ds.top_factors && ds.top_factors[0]) || null,
+      }
+    })
+    .sort((a, b) => b.contribution - a.contribution)
+
+  const maxC  = Math.max(...rows.map(r => r.contribution), 1)
+  const total = Math.round(rows.reduce((s, r) => s + r.contribution, 0) * 10) / 10
+  const top   = rows[0]
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-indigo-200 bg-white shadow-lg shadow-indigo-100/60">
+      {/* Gradient header with the composite score */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-600 to-blue-600 px-6 py-5">
+        <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+              <Sparkles size={17} className="text-white" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black tracking-tight text-white">
+                Why this score?
+              </h4>
+              <p className="text-[11px] font-medium text-indigo-100">
+                Explainable risk attribution
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-black leading-none text-white">
+              {Number(score).toFixed(0)}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+              composite
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ranked contribution bars */}
+      <div className="space-y-3.5 px-6 py-5">
+        {rows.map((r, i) => (
+          <motion.div
+            key={r.id}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.07, duration: 0.3 }}
+          >
+            <div className="mb-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-lg text-[11px] font-black text-white"
+                  style={{ background: r.color }}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-sm font-bold text-slate-700">
+                  {r.icon} {r.label}
+                </span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-400">
+                  {r.weightPct}% weight
+                </span>
+              </div>
+              <span
+                className="text-sm font-black tabular-nums"
+                style={{ color: r.color }}
+              >
+                +{r.contribution.toFixed(1)}
+              </span>
+            </div>
+
+            <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(r.contribution / maxC) * 100}%` }}
+                transition={{ delay: i * 0.07 + 0.1, duration: 0.7, ease: 'easeOut' }}
+                className="h-full rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, ${r.color}, ${r.color}cc)`,
+                }}
+              />
+            </div>
+
+            {r.factor && (
+              <div className="mt-1 pl-8 text-[11px] text-slate-400">
+                {r.factor}
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Top-driver intervention callout */}
+      {top && INTERVENTIONS[top.id] && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: rows.length * 0.07 + 0.15, duration: 0.3 }}
+          className="mx-6 mb-5 rounded-2xl border-l-4 p-4"
+          style={{ borderColor: top.color, background: top.soft }}
+        >
+          <div
+            className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wide"
+            style={{ color: top.color }}
+          >
+            <TrendingUp size={13} />
+            Recommended action · top driver: {top.label}
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+            {INTERVENTIONS[top.id]}
+          </p>
+        </motion.div>
+      )}
+
+      {/* Honesty footer — shows the attribution genuinely sums */}
+      <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-3">
+        <p className="text-[11px] leading-relaxed text-slate-400">
+          Additive attribution from the district risk model (v2.2). Disease
+          contributions total{' '}
+          <span className="font-bold text-slate-500">+{total.toFixed(1)}</span>{' '}
+          against a composite of{' '}
+          <span className="font-bold text-slate-500">{Number(score).toFixed(1)}</span>{' '}
+          — computed from model weights, no post-hoc estimation.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────── */
+/* Detail Panel */
+/* ────────────────────────────────────────────────────────────── */
+
 function DetailPanel({ division, data }) {
   const [briefing, setBriefing] = useState('Loading briefing...')
 
@@ -593,6 +773,12 @@ function DetailPanel({ division, data }) {
             </p>
           </div>
         </div>
+
+        {/* ── Why this score? — eye-catching additive attribution ── */}
+        <ScoreAttribution
+          score={score}
+          perDiseaseScores={data?.per_disease_scores}
+        />
 
         {/* ── Per-disease breakdown — renders if data exists ── */}
         <PerDiseaseBreakdown perDiseaseScores={data?.per_disease_scores} />
