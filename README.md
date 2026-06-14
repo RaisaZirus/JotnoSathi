@@ -2,7 +2,7 @@
 
 <img src="frontend/src/jotno.png" alt="JotnoSathi Logo" width="120" height="120" style="border-radius: 24px;" />
 
-<h1>JotnoSathi &nbsp;·&nbsp; জত্নসাথী</h1>
+<h1>JotnoSathi &nbsp;·&nbsp;  যত্নসাথী</h1>
 
 <p><strong>AI Clinical Decision Support for Bangladeshi Community Health Workers</strong></p>
 
