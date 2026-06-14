@@ -29,7 +29,9 @@
 <br />
 
 </div>
+## Demo Video
 
+[![JotnoSathi Demo — Infinity AI BuildFest 2026](https://img.youtube.com/vi/QJZqFZ1toqM/maxresdefault.jpg)](https://youtu.be/QJZqFZ1toqM?si=SmY9mhketWBdbQS2)
 ---
 
 ## The Problem
